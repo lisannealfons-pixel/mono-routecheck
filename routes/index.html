@@ -100,11 +100,14 @@ body.bedankt{background:var(--blauw)}
 .prototype{background:var(--geel);border:2px solid var(--zwart);border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.45;margin-bottom:20px}
 .prototype button{font:inherit;font-weight:800;background:none;border:0;padding:0;margin-top:6px;text-decoration:underline;text-underline-offset:3px;cursor:pointer;color:var(--zwart)}
 input:focus-visible{outline:3px solid var(--blauw);outline-offset:2px}
-/* "Over jou": vier keer hetzelfde gebaar. Vraag klein, antwoord groot, daaronder de schuif. */
-.veldje{margin-bottom:20px}
-.veldje .vraag{font-weight:600;font-size:13px;color:#555;margin-bottom:1px}
-.veldje .waarde{font-weight:900;font-size:24px;line-height:1.15;letter-spacing:-.02em;color:var(--blauw);min-height:28px}
-.veldje.leeg .waarde{color:#A9A8A2;font-weight:800}
+/* "Over jou": vier keer hetzelfde gebaar. Vraag klein, antwoord groot, daaronder de schuif. Een vinkje als het is ingevuld. */
+.veldje{padding:14px 0 4px;border-top:2px solid #E4E3DC}
+.veldje:first-of-type{border-top:0;padding-top:0}
+.veldje .vraag{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:13px;color:#555}
+.veldje .vraag::after{content:"";width:18px;height:18px;border-radius:50%;border:2px solid #C9C8C1;flex:none}
+.veldje:not(.leeg) .vraag::after{content:"✓";border-color:var(--blauw);background:var(--blauw);color:var(--wit);font-size:11px;font-weight:900;display:grid;place-items:center}
+.veldje .waarde{font-weight:900;font-size:28px;line-height:1.1;letter-spacing:-.03em;color:var(--zwart);min-height:31px}
+.veldje.leeg .waarde{color:#B4B3AC;font-weight:800;font-size:20px;letter-spacing:-.01em;padding-top:6px}
 .baan{position:relative}
 .veldje input[type=range]{-webkit-appearance:none;appearance:none;display:block;width:100%;height:44px;margin:0;background:transparent;cursor:pointer;--pct:0%;touch-action:pan-y}
 .veldje input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:99px;background:linear-gradient(to right,var(--blauw) var(--pct),#DDDCD5 var(--pct))}
@@ -213,6 +216,8 @@ const WEETJES = {
 
 // Greepkleuren, zoals op de wand
 const KLEUREN = ["#FFD23F","#2F5BFF","#E0442B","#1E9E5A","#FF8A1F","#8E44D9","#FF6FB5","#111111"];
+// Gradaties in de hal: 2 t/m 10. (De Fontainebleau-schaal ligt eronder, die tonen we hier niet.)
+const NIVEAUS = ["2","3","4","5","6","7","8","9","10"];
 const PROFIEL_KEY = "mono_routecheck_profiel_v1";
 const GEDAAN_KEY = "mono_routecheck_gedaan_v1";
 
@@ -229,7 +234,7 @@ const TEKST = {
     wand:"Welke wand?", wandSub:"Kies de wand waar je net op klom.",
     over:"Tot slot: over jou",
     kort:{freq:"Hoe vaak klim je hier?",niveau:"Wat klim je meestal?",lengte:"Hoe lang ben je?",leeftijd:"Hoe oud ben je?"}, schuif:"Schuif om te kiezen", nog:n=>`Nog ${n} te gaan`, korter:"of korter", langer:"of langer",
-    eind:{freq:["eerste keer","2+ per week"],niveau:["net begonnen","7B+"],leeftijd:["onder 12","50+"]},
+    eind:{freq:["eerste keer","2+ per week"],niveau:["weet ik niet","10"],leeftijd:["onder 12","50+"]},
     prototype:"<b>Prototype.</b> Dit scherm zien klimmers alleen via de algemene QR-code. Elke wand krijgt een eigen QR-bordje. Wie die scant, slaat deze stap over: de juiste wand staat al ingevuld en het antwoord wordt onder die wand opgeslagen.", prototypeKnop:"Probeer het zoals na het scannen van Bosigran",
     happy:"Hoe vond je deze set?", happyAria:"Score van 1 tot 5",
     hal:"En de hal?",
@@ -246,14 +251,14 @@ const TEKST = {
       freq:{titel:"Hoe vaak klim je bij MONO?", sub:"Dit vragen we maar één keer. Je telefoon onthoudt het.",
         opties:{eerste:["Dit is mijn eerste keer"],jaar:["Een paar keer per jaar"],maand:["Een paar keer per maand"],week:["Elke week"],vaste:["2 keer of vaker per week"]}},
       niveau:{titel:"Wat klim je meestal?", sub:"Wat je op een goede dag topt.",
-        opties:{start:["Net begonnen"],"4-5":["4 tot 5"],"6a-6b":["6A tot 6B+"],"6c-7a":["6C tot 7A"],"7a+-7b":["7A+ tot 7B"],"7b+":["7B+ en hoger"]}},
+        start:"Weet ik nog niet", n:n=>`Niveau ${n}`},
       lengte:{titel:"Hoe lang ben je?", sub:"Een verre move is voor iedereen anders. Zo zien de setters of een route alleen voor lange mensen werkt.",
         opties:{"-160":["Korter dan 1,60"],"160-170":["1,60 tot 1,70"],"170-180":["1,70 tot 1,80"],"180-190":["1,80 tot 1,90"],"190+":["1,90 of langer"]}},
       fit:{titel:"Was er genoeg voor jouw niveau?", sub:"",
         opties:{weinig:["Te weinig"],goed:["Precies goed"],veel:["Meer dan genoeg"]}},
       terug:{titel:"Kom je terug voor een project?", sub:"",
         opties:{ja:["Ja, ik heb een project"],misschien:["Misschien"],nee:["Nee, geen project"],onbekend:["Een project? Wat is dat?"]}},
-      grade:{titel:"Klopten de grades?", sub:"Voelde een 6A als een 6A?",
+      grade:{titel:"Klopten de grades?", sub:"Voelde een 5 als een 5?",
         opties:{soft:["Te makkelijk"],klopt:["Klopt"],zwaar:["Te zwaar"],wisselend:["Heel wisselend"],geenidee:["Geen idee"]}},
       stijl:{titel:"Welke stijlen kwam je tegen?", sub:"Je kan meerdere stijlen selecteren."},
       mist:{titel:"Wat zou je meer willen zien?", sub:"", niks:"Niks, het zat er allemaal in"},
@@ -268,7 +273,7 @@ const TEKST = {
     wand:"Which wall?", wandSub:"Pick the wall you just climbed.",
     over:"Finally: about you",
     kort:{freq:"How often do you climb here?",niveau:"What do you usually climb?",lengte:"How tall are you?",leeftijd:"How old are you?"}, schuif:"Slide to choose", nog:n=>`${n} to go`, korter:"or shorter", langer:"or taller",
-    eind:{freq:["first time","2+ a week"],niveau:["just started","7B+"],leeftijd:["under 12","50+"]},
+    eind:{freq:["first time","2+ a week"],niveau:["not sure","10"],leeftijd:["under 12","50+"]},
     prototype:"<b>Prototype.</b> Climbers only see this screen via the general QR code. Every wall gets its own QR sign. Scanning it skips this step: the right wall is already filled in and the answer is saved under that wall.", prototypeKnop:"Try it as if you scanned Bosigran",
     happy:"How did you like this set?", happyAria:"Score from 1 to 5",
     hal:"And the gym?",
@@ -285,14 +290,14 @@ const TEKST = {
       freq:{titel:"How often do you climb at MONO?", sub:"We only ask this once. Your phone remembers.",
         opties:{eerste:["This is my first time"],jaar:["A few times a year"],maand:["A few times a month"],week:["Every week"],vaste:["2 or more times a week"]}},
       niveau:{titel:"What do you usually climb?", sub:"What you top on a good day.",
-        opties:{start:["Just started"],"4-5":["4 to 5"],"6a-6b":["6A to 6B+"],"6c-7a":["6C to 7A"],"7a+-7b":["7A+ to 7B"],"7b+":["7B+ and up"]}},
+        start:"Not sure yet", n:n=>`Level ${n}`},
       lengte:{titel:"How tall are you?", sub:"A long move is different for everyone. This shows the setters if a route only works for tall people.",
         opties:{"-160":["Under 1.60 m"],"160-170":["1.60 to 1.70 m"],"170-180":["1.70 to 1.80 m"],"180-190":["1.80 to 1.90 m"],"190+":["1.90 m or taller"]}},
       fit:{titel:"Was there enough at your level?", sub:"",
         opties:{weinig:["Too little"],goed:["Just right"],veel:["More than enough"]}},
       terug:{titel:"Coming back for a project?", sub:"",
         opties:{ja:["Yes, I've got a project"],misschien:["Maybe"],nee:["No, no project"],onbekend:["A project? What's that?"]}},
-      grade:{titel:"Were the grades right?", sub:"Did a 6A feel like a 6A?",
+      grade:{titel:"Were the grades right?", sub:"Did a 5 feel like a 5?",
         opties:{soft:["Too easy"],klopt:["About right"],zwaar:["Too hard"],wisselend:["All over the place"],geenidee:["No idea"]}},
       stijl:{titel:"Which styles did you come across?", sub:"You can select multiple styles."},
       mist:{titel:"What would you like to see more of?", sub:"", niks:"Nothing, it had it all"},
@@ -309,7 +314,7 @@ function zetTaal(t){
   taal = t; T = TEKST[t]; document.documentElement.lang = t;
   const v = T.vragen, o = q => Object.entries(v[q].opties).map(([w,[t1,t2]])=>t2?[w,t1,t2]:[w,t1]);
   VRAGEN = {
-    freq:{...v.freq,opties:o("freq")}, niveau:{...v.niveau,opties:o("niveau")}, lengte:{...v.lengte,opties:o("lengte")},
+    freq:{...v.freq,opties:o("freq")}, niveau:{titel:v.niveau.titel, sub:v.niveau.sub, opties:[["start",v.niveau.start],...NIVEAUS.map(n=>[n,v.niveau.n(n)])]}, lengte:{...v.lengte,opties:o("lengte")},
     terug:{...v.terug,opties:o("terug")},
     fit:{...v.fit,opties:o("fit")}, grade:{...v.grade,opties:o("grade")},
     stijl:{titel:v.stijl.titel, sub:v.stijl.sub, multi:true, opties:STIJLEN.map(s=>[s,T.stijl(s)])},
@@ -418,7 +423,7 @@ function render(){
     const lg = !p.lengte;
     if(lg) lengteCm = 175; else if(lengteBak(lengteCm)!==p.lengte) lengteCm = {"-160":155,"160-170":165,"170-180":175,"180-190":185,"190+":193}[p.lengte];
     const komma = taal==="en"?".":",";
-    h += `<section class="stap"><h1 style="margin-bottom:22px">${T.over}</h1>
+    h += `<section class="stap"><h1 style="margin-bottom:18px">${T.over}</h1>
       ${schuif("freq")}${schuif("niveau")}
       <div class="veldje ${lg?"leeg":""}"><div class="vraag">${T.kort.lengte}</div><div class="waarde">${lg?T.schuif:lengteTekst(lengteCm)}</div>
         <div class="baan"><input type="range" min="150" max="200" step="1" value="${lengteCm}" data-schuif="lengte" aria-label="${T.kort.lengte}" style="--pct:${lg?0:(lengteCm-150)*2}%"></div>
@@ -503,7 +508,7 @@ document.addEventListener("click",e=>{
   // Sluiten: het tabblad dicht als de browser dat toelaat, anders terug naar het begin
   if(act==="sluiten"){ window.close(); setTimeout(()=>location.reload(),200); return; }
   // Klopt het profiel nog en is het compleet, dan slaan we de pagina "over jou" over. Anders staat hij ingevuld klaar.
-  if(act==="profiel-ja"||act==="profiel-nee"){ PROFIELVRAGEN.forEach(q=>p[q]=profiel[q]||null); profielOk=act==="profiel-ja"&&profielCompleet(); bouwPad(); i=1; render(); return; }
+  if(act==="profiel-ja"||act==="profiel-nee"){ PROFIELVRAGEN.forEach(q=>p[q]=VRAGEN[q].opties.some(o=>o[0]===profiel[q])?profiel[q]:null); profielOk=act==="profiel-ja"&&profielCompleet(); bouwPad(); i=1; render(); return; }
   if(b.dataset.prof){ p[b.dataset.prof]=b.dataset.val; // zonder opnieuw tekenen, zodat de pagina niet naar boven springt
     b.parentElement.querySelectorAll(".keuze").forEach(x=>x.setAttribute("aria-pressed",x===b)); document.querySelector(".door").disabled=!profielCompleet(); return; }
   if(b.dataset.wand){ wand=WANDEN.find(w=>w.id===b.dataset.wand); render(); setTimeout(volgende,220); return; }

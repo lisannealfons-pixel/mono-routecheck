@@ -121,7 +121,7 @@ const TEKST={
     locale:"nl-NL", laden:"Laden...", gekopieerd:"Gekopieerd", onbekend:"Onbekend",
     geenToegang:"Geen toegang. Open het dashboard via de link met sleutel (#key=...). Vraag hem bij Lisanne.",
     laadFout:"Data laden lukte niet. Check de ENDPOINT in dashboard.html en of de Apps Script web-app voor iedereen openstaat.",
-    niveaus:{"start":"Net begonnen","4-5":"4 tot 5","6a-6b":"6A tot 6B+","6c-7a":"6C tot 7A","7a+-7b":"7A+ tot 7B","7b+":"7B+ en hoger"},
+    nivStart:"Weet ik niet", niv:n=>`Niveau ${n}`,
     freq:{eerste:"Eerste keer",jaar:"Paar keer per jaar",maand:"Paar keer per maand",week:"Elke week",vaste:"2+ per week"},
     leeftijd:{"-12":"Jonger dan 12","12-17":"12 tot 17","18-24":"18 tot 24","25-34":"25 tot 34","35-49":"35 tot 49","50+":"50+"},
     fit:{weinig:"Te weinig",goed:"Precies goed",veel:"Meer dan genoeg"},
@@ -182,7 +182,7 @@ const TEKST={
     locale:"en-GB", laden:"Loading...", gekopieerd:"Copied", onbekend:"Unknown",
     geenToegang:"No access. Open the dashboard via the link with the key (#key=...). Ask Lisanne for it.",
     laadFout:"Could not load the data. Check the ENDPOINT in dashboard.html and whether the Apps Script web app is open to everyone.",
-    niveaus:{"start":"Just started","4-5":"4 to 5","6a-6b":"6A to 6B+","6c-7a":"6C to 7A","7a+-7b":"7A+ to 7B","7b+":"7B+ and up"},
+    nivStart:"Not sure", niv:n=>`Level ${n}`,
     freq:{eerste:"First time",jaar:"A few times a year",maand:"A few times a month",week:"Every week",vaste:"2+ a week"},
     leeftijd:{"-12":"Under 12","12-17":"12 to 17","18-24":"18 to 24","25-34":"25 to 34","35-49":"35 to 49","50+":"50+"},
     fit:{weinig:"Too little",goed:"Just right",veel:"More than enough"},
@@ -250,7 +250,8 @@ let T, NIVEAUS, FREQ, LEEFTIJD, FIT, GRADE, HALOPT, HAL, LENGTES, TERUG;
 function zetTaal(t){
   taal=t; T=TEKST[t]; document.documentElement.lang=t;
   const lijst=(o,k)=>Object.entries(o).map(([w,l])=>k?[w,l,KLEUR[k][w]]:[w,l]);
-  NIVEAUS=lijst(T.niveaus); FREQ=lijst(T.freq); LEEFTIJD=lijst(T.leeftijd);
+  NIVEAUS=[["start",T.nivStart],...["2","3","4","5","6","7","8","9","10"].map(n=>[n,T.niv(n)])]; // gradaties van de hal: 2 t/m 10
+   FREQ=lijst(T.freq); LEEFTIJD=lijst(T.leeftijd);
   FIT=lijst(T.fit,"fit"); GRADE=lijst(T.grade,"grade"); HALOPT=lijst(T.halopt,"halopt"); HAL=lijst(T.hal);
   LENGTES=lijst(T.lengte); TERUG=lijst(T.terug,"terug");
   document.getElementById("toast").textContent=T.gekopieerd;
@@ -268,6 +269,7 @@ async function laad(){
     const r = await fetch(ENDPOINT+"?key="+encodeURIComponent(key));
     const j = await r.json();
     if(j.fout){ document.getElementById("app").innerHTML=`<div class="waarschuwing" role="alert"><b>${T.geenToegang}</b></div>`; return; }
+    j.antwoorden.forEach(r=>{r.niveau=String(r.niveau??"")}); // Sheets geeft een niveau soms als getal terug
     DATA=j; render();
   }catch(e){ document.getElementById("app").innerHTML=`<div class="waarschuwing" role="alert"><b>${T.laadFout}</b></div>`; }
 }
@@ -484,15 +486,15 @@ function voorbeeld(){
       sets.push({wand:w,setdatum:d.toISOString(),naam});
       const basis=[3.2,3.8,3.5,4.1,3.0,3.9][wi%6]+(k===aantal-1?(wi===2?-.7:.3):0);
       for(let j=0;j<8+Math.floor(rnd()*14);j++){
-        const niv=kies(["start","4-5","4-5","6a-6b","6a-6b","6a-6b","6c-7a","6c-7a","7a+-7b","7b+"]);
-        const sterk=niv==="7a+-7b"||niv==="7b+"; const lg=kies(["-160","160-170","160-170","170-180","170-180","180-190","190+"]);
+        const niv=kies(["start","3","4","4","5","5","5","6","6","6","7","7","8","9","10"]);
+        const sterk=niv==="9"||niv==="10"; const lg=kies(["-160","160-170","160-170","170-180","170-180","180-190","190+"]);
         antwoorden.push({ontvangen:new Date(Math.min(+d+rnd()*25*864e5,nu-rnd()*36e5)).toISOString(),wand:w,set:naam,setdatum:d.toISOString().slice(0,10),
           happy:Math.max(1,Math.min(5,Math.round(basis+(rnd()-.5)*2.2))),
           fit:sterk?kies(["weinig","weinig","goed"]):kies(["goed","goed","goed","veel","weinig"]),
-          grade:niv==="start"?"geenidee":kies(niv==="6a-6b"?["zwaar","klopt","klopt","zwaar"]:["klopt","klopt","soft","wisselend"]),
+          grade:niv==="start"?"geenidee":kies(niv==="6"?["zwaar","klopt","klopt","zwaar"]:["klopt","klopt","soft","wisselend"]),
           stijl:STIJLEN.filter(()=>rnd()<.28), mist:rnd()<.8?STIJLEN.filter((s)=>rnd()<(s==="Slab en balans"||s==="Comp style"?.38:.1)):["niks"],
           hal_grips:rnd()<.6?kies(["top","oke","beter","beter"]):"",hal_drukte:rnd()<.6?kies(["top","oke","oke","beter"]):"",hal_sfeer:rnd()<.6?kies(["top","top","oke"]):"",
-          tip:rnd()<.25?kies(["Meer slabs graag, de overhang is allemaal kracht.","Die gele op de compwand was de beste route van het jaar.","Te weinig tussen 6A en 6B, veel 5 en dan meteen zwaar.","Grips op de hoek zijn echt vies, glijden weg.","Leuk voor beginners, mijn kind toppte haar eerste!","Meer coordinatie-bewegingen, mag wat gekker.","Start van de blauwe is onduidelijk."]):"",
+          tip:rnd()<.25?kies(["Meer slabs graag, de overhang is allemaal kracht.","Die gele op de compwand was de beste route van het jaar.","Te weinig op niveau 6, veel 5 en dan meteen zwaar.","Grips op de hoek zijn echt vies, glijden weg.","Leuk voor beginners, mijn kind toppte haar eerste!","Meer coordinatie-bewegingen, mag wat gekker.","Start van de blauwe is onduidelijk."]):"",
           freq:kies(["eerste","jaar","maand","week","week","vaste"]),niveau:niv,leeftijd:kies(["-12","12-17","18-24","25-34","25-34","35-49","50+"]),
           lengte:lg, terug:kies(["ja","ja","misschien","nee","nee","onbekend"])});
         // kleinere klimmers vinden vaker te weinig
@@ -502,9 +504,9 @@ function voorbeeld(){
   });
   const wk=n=>new Date(nu+n*7*864e5).toISOString();
   const trainingen=[
-    {van:wk(-2),tot:wk(2),groep:"regulier",thema:"Slab en balans",notitie:"Voetenwerk en gewicht verplaatsen. Liefst een paar slabs van 5 tot 6A."},
+    {van:wk(-2),tot:wk(2),groep:"regulier",thema:"Slab en balans",notitie:"Voetenwerk en gewicht verplaatsen. Liefst een paar slabs op niveau 4 en 5."},
     {van:wk(2),tot:wk(6),groep:"regulier",thema:"Dynamisch",notitie:"Eerste sprongen en dead points, laag bij de grond."},
-    {van:wk(-1),tot:wk(3),groep:"selectie",thema:"Comp style",notitie:"Coördinatie en run-and-jumps, 6C en hoger."},
+    {van:wk(-1),tot:wk(3),groep:"selectie",thema:"Comp style",notitie:"Coördinatie en run-and-jumps, niveau 7 en hoger."},
     {van:wk(3),tot:wk(7),groep:"selectie",thema:"Crimpy en power",notitie:"Overhang, kleine grepen."}];
   return {antwoorden,sets,trainingen,bijgewerkt:new Date().toISOString()};
 }
