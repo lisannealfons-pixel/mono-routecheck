@@ -100,21 +100,24 @@ body.bedankt{background:var(--blauw)}
 .prototype{background:var(--geel);border:2px solid var(--zwart);border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.45;margin-bottom:20px}
 .prototype button{font:inherit;font-weight:800;background:none;border:0;padding:0;margin-top:6px;text-decoration:underline;text-underline-offset:3px;cursor:pointer;color:var(--zwart)}
 input:focus-visible{outline:3px solid var(--blauw);outline-offset:2px}
-/* "Over jou": vier compacte regels in plaats van een lange lijst knoppen. Schuiven in plaats van zoeken. */
-.veldje{margin-bottom:24px}
-.veldje .kop{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-weight:800;font-size:15px;margin-bottom:8px}
-.veldje .kop b{font-weight:900;font-size:19px;color:var(--blauw);text-align:right;line-height:1.1}
-.veldje.leeg .kop b{color:var(--grijs-d);font-weight:600;font-size:14px}
-.veldje input[type=range]{-webkit-appearance:none;appearance:none;display:block;width:100%;height:34px;margin:0;background:transparent;cursor:pointer;--pct:0%}
+/* "Over jou": vier keer hetzelfde gebaar. Vraag klein, antwoord groot, daaronder de schuif. */
+.veldje{margin-bottom:20px}
+.veldje .vraag{font-weight:600;font-size:13px;color:#555;margin-bottom:1px}
+.veldje .waarde{font-weight:900;font-size:24px;line-height:1.15;letter-spacing:-.02em;color:var(--blauw);min-height:28px}
+.veldje.leeg .waarde{color:#A9A8A2;font-weight:800}
+.baan{position:relative}
+.veldje input[type=range]{-webkit-appearance:none;appearance:none;display:block;width:100%;height:44px;margin:0;background:transparent;cursor:pointer;--pct:0%;touch-action:pan-y}
 .veldje input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:99px;background:linear-gradient(to right,var(--blauw) var(--pct),#DDDCD5 var(--pct))}
 .veldje input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:linear-gradient(to right,var(--blauw) var(--pct),#DDDCD5 var(--pct))}
-.veldje input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:30px;height:26px;margin-top:-9px;border-radius:40% 60% 55% 45%;background:var(--blauw);border:2.5px solid var(--zwart)}
-.veldje input[type=range]::-moz-range-thumb{width:26px;height:22px;border-radius:40% 60% 55% 45%;background:var(--blauw);border:2.5px solid var(--zwart)}
+.veldje input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:34px;height:30px;margin-top:-11px;border-radius:40% 60% 55% 45%;background:var(--blauw);border:2.5px solid var(--zwart);transition:transform .12s ease}
+.veldje input[type=range]::-moz-range-thumb{width:30px;height:26px;border-radius:40% 60% 55% 45%;background:var(--blauw);border:2.5px solid var(--zwart)}
+.veldje input[type=range]:active::-webkit-slider-thumb{transform:scale(1.15) rotate(-8deg)}
 .veldje.leeg input[type=range]::-webkit-slider-thumb{background:var(--wit)}
 .veldje.leeg input[type=range]::-moz-range-thumb{background:var(--wit)}
-.veldje .eindjes{display:flex;justify-content:space-between;font-size:11px;color:var(--grijs-d);margin-top:2px}
-.veldje select{-webkit-appearance:none;appearance:none;width:100%;font:inherit;font-weight:600;font-size:16px;color:var(--zwart);background:var(--wit) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%23000' stroke-width='2.5'/%3E%3C/svg%3E") no-repeat right 16px center;border:2px solid var(--zwart);border-radius:14px;padding:13px 44px 13px 16px;cursor:pointer}
-.veldje.leeg select{color:var(--grijs-d)}
+/* streepjes onder de baan: zo zie je bij de vragen met vaste stappen waar de schuif kan staan */
+.tikken{position:absolute;left:17px;right:17px;top:calc(50% + 9px);display:flex;justify-content:space-between;pointer-events:none}
+.tikken i{width:2px;height:5px;border-radius:1px;background:#BDBCB5}
+.veldje .eindjes{display:flex;justify-content:space-between;font-size:11px;color:var(--grijs-d);margin-top:-2px}
 /* Startscherm: grote kop in brede kapitalen op papierkleur, roze knop, onderaan een strook uitsneden van de foto */
 .start{flex:1;display:flex;flex-direction:column}
 .start .balk{display:flex;align-items:center;justify-content:space-between;margin:6px 0 38px}
@@ -225,7 +228,8 @@ const TEKST = {
     profiel:(n,f)=>`Vorige keer: <b>${n}</b>, <b>${f}</b>. Klopt dat nog?`, profielJa:"Klopt", profielNee:"Aanpassen",
     wand:"Welke wand?", wandSub:"Kies de wand waar je net op klom.",
     over:"Tot slot: over jou",
-    kort:{freq:"Hoe vaak klim je hier?",niveau:"Wat klim je meestal?",lengte:"Hoe lang ben je?",leeftijd:"Hoe oud ben je?"}, schuif:"schuif", kies:"Kies je leeftijd", korter:"of korter", langer:"of langer",
+    kort:{freq:"Hoe vaak klim je hier?",niveau:"Wat klim je meestal?",lengte:"Hoe lang ben je?",leeftijd:"Hoe oud ben je?"}, schuif:"Schuif om te kiezen", nog:n=>`Nog ${n} te gaan`, korter:"of korter", langer:"of langer",
+    eind:{freq:["eerste keer","2+ per week"],niveau:["net begonnen","7B+"],leeftijd:["onder 12","50+"]},
     prototype:"<b>Prototype.</b> Dit scherm zien klimmers alleen via de algemene QR-code. Elke wand krijgt een eigen QR-bordje. Wie die scant, slaat deze stap over: de juiste wand staat al ingevuld en het antwoord wordt onder die wand opgeslagen.", prototypeKnop:"Probeer het zoals na het scannen van Bosigran",
     happy:"Hoe vond je deze set?", happyAria:"Score van 1 tot 5",
     hal:"En de hal?",
@@ -263,7 +267,8 @@ const TEKST = {
     profiel:(n,f)=>`Last time: <b>${n}</b>, <b>${f}</b>. Still right?`, profielJa:"Yes", profielNee:"Change",
     wand:"Which wall?", wandSub:"Pick the wall you just climbed.",
     over:"Finally: about you",
-    kort:{freq:"How often do you climb here?",niveau:"What do you usually climb?",lengte:"How tall are you?",leeftijd:"How old are you?"}, schuif:"slide", kies:"Pick your age", korter:"or shorter", langer:"or taller",
+    kort:{freq:"How often do you climb here?",niveau:"What do you usually climb?",lengte:"How tall are you?",leeftijd:"How old are you?"}, schuif:"Slide to choose", nog:n=>`${n} to go`, korter:"or shorter", langer:"or taller",
+    eind:{freq:["first time","2+ a week"],niveau:["just started","7B+"],leeftijd:["under 12","50+"]},
     prototype:"<b>Prototype.</b> Climbers only see this screen via the general QR code. Every wall gets its own QR sign. Scanning it skips this step: the right wall is already filled in and the answer is saved under that wall.", prototypeKnop:"Try it as if you scanned Bosigran",
     happy:"How did you like this set?", happyAria:"Score from 1 to 5",
     hal:"And the gym?",
@@ -404,21 +409,22 @@ function render(){
       </div></section>` + onder({door:T.verder,skip:!Object.keys(a.hal).length});
   }
   else if(stap==="over"){
+    // Eén patroon voor alle vier: vraag, groot antwoord, schuif. Bij vaste stappen staan er streepjes onder de baan.
     const schuif = q => { const o=VRAGEN[q].opties, k=o.findIndex(x=>x[0]===p[q]), leeg=k<0, v=leeg?Math.floor((o.length-1)/2):k;
-      return `<div class="veldje ${leeg?"leeg":""}"><div class="kop"><span>${T.kort[q]}</span><b>${leeg?T.schuif:o[k][1]}</b></div>
-        <input type="range" min="0" max="${o.length-1}" step="1" value="${v}" data-schuif="${q}" aria-label="${T.kort[q]}" style="--pct:${leeg?0:v/(o.length-1)*100}%">
-        <div class="eindjes"><span>${o[0][1]}</span><span>${o[o.length-1][1]}</span></div></div>`; };
+      return `<div class="veldje ${leeg?"leeg":""}"><div class="vraag">${T.kort[q]}</div><div class="waarde">${leeg?T.schuif:o[k][1]}</div>
+        <div class="baan"><input type="range" min="0" max="${o.length-1}" step="1" value="${v}" data-schuif="${q}" aria-label="${T.kort[q]}" style="--pct:${leeg?0:v/(o.length-1)*100}%">
+          <div class="tikken">${o.map(()=>"<i></i>").join("")}</div></div>
+        <div class="eindjes"><span>${T.eind[q][0]}</span><span>${T.eind[q][1]}</span></div></div>`; };
     const lg = !p.lengte;
     if(lg) lengteCm = 175; else if(lengteBak(lengteCm)!==p.lengte) lengteCm = {"-160":155,"160-170":165,"170-180":175,"180-190":185,"190+":193}[p.lengte];
-    h += `<section class="stap"><h1 style="margin-bottom:26px">${T.over}</h1>
+    const komma = taal==="en"?".":",";
+    h += `<section class="stap"><h1 style="margin-bottom:22px">${T.over}</h1>
       ${schuif("freq")}${schuif("niveau")}
-      <div class="veldje ${lg?"leeg":""}"><div class="kop"><span>${T.kort.lengte}</span><b>${lg?T.schuif:lengteTekst(lengteCm)}</b></div>
-        <input type="range" min="150" max="200" step="1" value="${lengteCm}" data-schuif="lengte" aria-label="${T.kort.lengte}" style="--pct:${lg?0:(lengteCm-150)*2}%">
-        <div class="eindjes"><span>1${taal==="en"?".":","}50</span><span>2${taal==="en"?".":","}00</span></div></div>
-      <div class="veldje ${p.leeftijd?"":"leeg"}"><div class="kop"><span>${T.kort.leeftijd}</span></div>
-        <select data-kies="leeftijd" aria-label="${T.kort.leeftijd}"><option value="" disabled ${p.leeftijd?"":"selected"}>${T.kies}</option>
-          ${VRAGEN.leeftijd.opties.map(([w,t])=>`<option value="${w}" ${p.leeftijd===w?"selected":""}>${t}</option>`).join("")}</select></div>
-      </section>` + onder({door:T.verstuur,disabled:!profielCompleet()});
+      <div class="veldje ${lg?"leeg":""}"><div class="vraag">${T.kort.lengte}</div><div class="waarde">${lg?T.schuif:lengteTekst(lengteCm)}</div>
+        <div class="baan"><input type="range" min="150" max="200" step="1" value="${lengteCm}" data-schuif="lengte" aria-label="${T.kort.lengte}" style="--pct:${lg?0:(lengteCm-150)*2}%"></div>
+        <div class="eindjes"><span>1${komma}50 m</span><span>2${komma}00 m</span></div></div>
+      ${schuif("leeftijd")}
+      </section>` + onder({door:profielCompleet()?T.verstuur:T.nog(PROFIELVRAGEN.filter(q=>!p[q]).length),disabled:!profielCompleet()});
   }
   else if(stap==="tip"){
     h += `<section class="stap"><h1>${T.tip}</h1><p class="sub">${T.tipSub}</p>
@@ -447,16 +453,18 @@ function render(){
   }
   app.innerHTML = h;
   window.scrollTo(0,0);
-  // Schuiven en kiezen op "over jou": pas bij aanraken telt een antwoord, zodat niemand ongemerkt de middenstand instuurt
+  // Schuiven op "over jou": pas bij aanraken telt een antwoord, zodat niemand ongemerkt de middenstand instuurt
   document.querySelectorAll("[data-schuif]").forEach(el=>{
-    const q=el.dataset.schuif, vak=el.closest(".veldje"), lab=vak.querySelector(".kop b");
+    const q=el.dataset.schuif, vak=el.closest(".veldje"), lab=vak.querySelector(".waarde"); let vorige=null;
     const zet=()=>{ const v=+el.value;
       if(q==="lengte"){ lengteCm=v; p.lengte=lengteBak(v); lab.textContent=lengteTekst(v); el.style.setProperty("--pct",(v-150)*2+"%"); }
-      else { const o=VRAGEN[q].opties; p[q]=o[v][0]; lab.textContent=o[v][1]; el.style.setProperty("--pct",v/(o.length-1)*100+"%"); }
-      vak.classList.remove("leeg"); document.querySelector(".door").disabled=!profielCompleet(); };
+      else { const o=VRAGEN[q].opties; p[q]=o[v][0]; lab.textContent=o[v][1]; el.style.setProperty("--pct",v/(o.length-1)*100+"%");
+        if(vorige!==null&&vorige!==v&&navigator.vibrate) navigator.vibrate(8); } // tikje bij elke stap, op telefoons die dat kunnen
+      vorige=v; vak.classList.remove("leeg");
+      const knop=document.querySelector(".door"), open=PROFIELVRAGEN.filter(x=>!p[x]).length;
+      knop.disabled=open>0; knop.textContent=open?T.nog(open):T.verstuur; };
     ["input","change","pointerdown","keydown"].forEach(ev=>el.addEventListener(ev,()=>setTimeout(zet,0)));
   });
-  document.querySelectorAll("[data-kies]").forEach(el=>el.addEventListener("change",()=>{ p[el.dataset.kies]=el.value; el.closest(".veldje").classList.remove("leeg"); document.querySelector(".door").disabled=!profielCompleet(); }));
   const ta = document.getElementById("tip");
   if(ta) ta.addEventListener("input",()=>{a.tip=ta.value;document.getElementById("tel").textContent=ta.value.length});
 }
