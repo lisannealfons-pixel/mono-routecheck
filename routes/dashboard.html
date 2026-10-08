@@ -122,7 +122,7 @@ const TEKST={
     geenToegang:"Geen toegang. Open het dashboard via de link met sleutel (#key=...). Vraag hem bij Lisanne.",
     laadFout:"Data laden lukte niet. Check de ENDPOINT in dashboard.html en of de Apps Script web-app voor iedereen openstaat.",
     nivStart:"Weet ik niet", niv:n=>`Niveau ${n}`,
-    freq:{eerste:"Eerste keer",jaar:"Paar keer per jaar",maand:"Paar keer per maand",week:"Elke week",vaste:"2+ per week"},
+    freq:{eerste:"Eerste keer",soms:"Soms",week:"Elke week",vaste:"2+ per week"},
     leeftijd:{"-12":"Jonger dan 12","12-17":"12 tot 17","18-24":"18 tot 24","25-34":"25 tot 34","35-49":"35 tot 49","50+":"50+"},
     fit:{weinig:"Te weinig",goed:"Precies goed",veel:"Meer dan genoeg"},
     grade:{soft:"Te makkelijk",klopt:"Klopt",zwaar:"Te zwaar",wisselend:"Heel wisselend"},
@@ -183,7 +183,7 @@ const TEKST={
     geenToegang:"No access. Open the dashboard via the link with the key (#key=...). Ask Lisanne for it.",
     laadFout:"Could not load the data. Check the ENDPOINT in dashboard.html and whether the Apps Script web app is open to everyone.",
     nivStart:"Not sure", niv:n=>`Level ${n}`,
-    freq:{eerste:"First time",jaar:"A few times a year",maand:"A few times a month",week:"Every week",vaste:"2+ a week"},
+    freq:{eerste:"First time",soms:"Sometimes",week:"Every week",vaste:"2+ a week"},
     leeftijd:{"-12":"Under 12","12-17":"12 to 17","18-24":"18 to 24","25-34":"25 to 34","35-49":"35 to 49","50+":"50+"},
     fit:{weinig:"Too little",goed:"Just right",veel:"More than enough"},
     grade:{soft:"Too easy",klopt:"About right",zwaar:"Too hard",wisselend:"All over the place"},
@@ -495,7 +495,7 @@ function voorbeeld(){
           stijl:STIJLEN.filter(()=>rnd()<.28), mist:rnd()<.8?STIJLEN.filter((s)=>rnd()<(s==="Slab en balans"||s==="Comp style"?.38:.1)):["niks"],
           hal_grips:rnd()<.6?kies(["top","oke","beter","beter"]):"",hal_drukte:rnd()<.6?kies(["top","oke","oke","beter"]):"",hal_sfeer:rnd()<.6?kies(["top","top","oke"]):"",
           tip:rnd()<.25?kies(["Meer slabs graag, de overhang is allemaal kracht.","Die gele op de compwand was de beste route van het jaar.","Te weinig op niveau 6, veel 5 en dan meteen zwaar.","Grips op de hoek zijn echt vies, glijden weg.","Leuk voor beginners, mijn kind toppte haar eerste!","Meer coordinatie-bewegingen, mag wat gekker.","Start van de blauwe is onduidelijk."]):"",
-          freq:kies(["eerste","jaar","maand","week","week","vaste"]),niveau:niv,leeftijd:kies(["-12","12-17","18-24","25-34","25-34","35-49","50+"]),
+          freq:kies(["eerste","soms","soms","week","week","vaste"]),niveau:niv,leeftijd:kies(["-12","12-17","18-24","25-34","25-34","35-49","50+"]),
           lengte:lg, terug:kies(["ja","ja","misschien","nee","nee","onbekend"])});
         // kleinere klimmers vinden vaker te weinig
         const lt=antwoorden[antwoorden.length-1]; if(["-160","160-170"].includes(lt.lengte)&&rnd()<.35) lt.fit="weinig";
