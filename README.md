@@ -19,14 +19,14 @@ index.html is het formulier. dashboard.html is het teamdashboard. Code.gs is de 
 ## QR-codes
 
 Eén QR per wand, met de wand-id in de link:
-https://feedback.monoboulder.nl/?wand=overhang
+https://feedback.monoboulder.nl/routes/?wand=bosigran
 
 Zonder ?wand= kiest de klimmer zelf de wand. Een algemene QR bij de balie of in de chalkbar kan dus ook.
 
 ## Dashboard delen
 
 Deel deze link in Slack, alleen met het team:
-https://feedback.monoboulder.nl/dashboard.html#key=JOUW_SLEUTEL
+https://feedback.monoboulder.nl/routes/dashboard.html#key=JOUW_SLEUTEL
 
 Zonder sleutel geen data. De antwoorden zijn anoniem, maar de sleutel hoort niet op Instagram.
 
@@ -41,3 +41,7 @@ Elke maandag (of bij de Weekstart) opent de hoofdsetter het dashboard, filter Hu
 ## Trainingsplanning
 
 De trainers zetten hun planning in de tab Trainingen: van (startdatum), tot (einddatum), groep (regulier of selectie), thema en een notitie. Het dashboard toont wat nu loopt en wat eraan komt, zodat de routesetters er rekening mee kunnen houden.
+
+## Adressen
+
+Het wandformulier staat op feedback.monoboulder.nl/routes, zodat er later andere formulieren naast kunnen (bijvoorbeeld /trainingen). Het hoofdadres stuurt door naar /routes.
