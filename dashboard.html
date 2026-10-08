@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>MONO routecheck dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--zwart:#000;--wit:#fff;--geel:#FFD23F;--blauw:#2F5BFF;--grijs:#EDEDED;--grijs-m:#C9C9C9;--grijs-d:#767676;--rood:#E0442B;--groen:#1E9E5A;
+  --font:"Poppins","Helvetica Neue",Arial,sans-serif;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--wit);color:var(--zwart);font-family:var(--font);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 20px 60px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;border-bottom:3px solid var(--zwart);padding-bottom:18px;margin-bottom:22px}
+.logo{display:block;width:40px;height:40px;color:var(--zwart);margin-bottom:14px}
+h1{font-weight:900;font-size:clamp(32px,5vw,52px);line-height:1;letter-spacing:-.02em;margin:0}
+.periode{font-weight:800;font-size:16px;margin-top:8px}
+.meta{color:var(--grijs-d);font-size:13px;margin-top:4px}
+.filters{display:flex;gap:10px;flex-wrap:wrap}
+.filters label{display:flex;flex-direction:column;font-size:12px;font-weight:600;gap:4px}
+select{font:inherit;font-weight:600;border:2px solid var(--zwart);border-radius:10px;padding:8px 10px;background:var(--wit)}
+.taal{display:flex;border:2px solid var(--zwart);border-radius:99px;overflow:hidden;align-self:flex-end}
+.taal button{font:inherit;font-weight:800;font-size:12px;background:var(--wit);color:var(--zwart);border:0;padding:8px 11px;cursor:pointer;line-height:1}
+.taal button[aria-pressed="true"]{background:var(--zwart);color:var(--wit)}
+.waarschuwing{background:var(--rood);color:var(--wit);border-radius:12px;padding:14px 18px;margin-bottom:20px;font-size:14px;line-height:1.5}
+.waarschuwing b{font-weight:800;font-size:16px}
+.waarschuwing ul{margin:6px 0 0;padding-left:20px}
+.waarschuwing li{margin:3px 0}
+.demo{background:var(--geel);border:2px solid var(--zwart);border-radius:12px;padding:10px 14px;margin-bottom:20px;font-size:14px}
+
+.kern{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:2px solid var(--zwart);border-radius:16px;overflow:hidden;margin-bottom:28px}
+.kern div{padding:16px 18px;border-right:2px solid var(--zwart)}
+.kern div:last-child{border-right:0}
+.kern b{display:block;font-weight:900;font-size:clamp(28px,4vw,44px);line-height:1.05}
+.kern span{font-size:13px;color:#333}
+.kern em{font-style:normal;font-weight:800;font-size:14px;margin-left:6px}
+.up{color:var(--groen)}.down{color:var(--rood)}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:28px 36px}
+.vol{grid-column:1/-1}
+section h2{font-weight:900;font-size:22px;letter-spacing:-.01em;margin:0 0 4px}
+section p.uitleg{margin:0 0 14px;color:#444;font-size:14px;max-width:70ch}
+
+/* Signalen: het belangrijkste blok */
+.signalen{background:var(--zwart);color:var(--wit);border-radius:18px;padding:22px}
+.signalen h2{color:var(--wit)}
+.signalen p.uitleg{color:#cfcfcf}
+.sig{display:flex;gap:14px;align-items:flex-start;padding:12px 0;border-top:1px solid #333}
+.sig:first-of-type{border-top:0}
+.sig .dot{flex:none;width:14px;height:14px;border-radius:40% 60% 55% 45%;margin-top:5px;background:var(--geel)}
+.sig.goed .dot{background:var(--groen)}
+.sig .t{flex:1}
+.sig .t b{font-weight:800}
+.sig .t small{display:block;color:#aaa;font-size:12px}
+.knop{font:inherit;font-weight:700;font-size:13px;background:var(--wit);color:var(--zwart);border:0;border-radius:99px;padding:7px 12px;cursor:pointer;white-space:nowrap}
+.knop.licht{background:var(--geel)}
+.knop.omlijnd{background:var(--wit);border:2px solid var(--zwart)}
+.sigkop{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+
+/* Balken */
+.rij{display:grid;grid-template-columns:140px 1fr 44px;gap:10px;align-items:center;margin:7px 0;font-size:14px}
+.rij .n{font-size:12px;color:var(--grijs-d);text-align:right}
+.stack{display:flex;height:22px;border-radius:6px;overflow:hidden;background:var(--grijs)}
+.stack span{display:block;height:100%}
+.legenda{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;margin-top:10px;color:#333}
+.legenda i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.laag{opacity:.45}
+.enkel{height:12px;border-radius:6px;background:var(--grijs);position:relative;overflow:hidden}
+.enkel span{position:absolute;left:0;top:0;bottom:0;border-radius:6px}
+.paar{display:flex;flex-direction:column;gap:3px}
+
+/* Happiness per set */
+.wandrij{display:grid;grid-template-columns:120px 1fr;gap:12px;align-items:end;padding:10px 0;border-top:1px solid var(--grijs)}
+.wandrij:first-of-type{border-top:0}
+.wandrij .naam{font-weight:800}
+.sets{display:flex;gap:8px;align-items:flex-end;overflow-x:auto;padding-bottom:4px}
+.setbar{display:flex;flex-direction:column;align-items:center;min-width:64px;font-size:12px}
+.setbar .kolom{width:36px;background:var(--grijs-m);border-radius:6px 6px 2px 2px;position:relative}
+.setbar.nu .kolom{background:var(--geel);outline:2px solid var(--zwart)}
+.setbar .v{font-weight:800;font-size:14px}
+.setbar .l{color:var(--grijs-d);text-align:center;line-height:1.2;margin-top:4px;max-width:80px}
+
+.setbar .wk{color:var(--zwart);font-size:11px;line-height:1.3;text-align:center;margin-top:3px}
+.train{display:grid;grid-template-columns:1fr 1fr;gap:8px 28px}
+.train h3{font-weight:800;font-size:15px;margin:0 0 4px}
+.titem{padding:10px 0;border-top:1px solid var(--grijs);font-size:14px}
+.titem b{font-weight:800;font-size:15px}
+.titem .nu{display:inline-block;background:var(--geel);border:2px solid var(--zwart);border-radius:99px;font-size:11px;font-weight:800;padding:0 7px;margin-left:6px;vertical-align:2px}
+.titem .d{display:block;color:var(--grijs-d);font-size:12px}
+.tips{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.tip{border:2px solid var(--zwart);border-radius:14px;padding:14px;font-size:14px}
+.tip .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tip .tags span{font-size:11px;font-weight:600;background:var(--grijs);border-radius:99px;padding:2px 8px}
+.leeg{color:var(--grijs-d);font-size:14px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--zwart);color:var(--wit);padding:10px 16px;border-radius:99px;font-weight:600;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.aan{opacity:1}
+button:focus-visible,select:focus-visible{outline:3px solid var(--blauw);outline-offset:2px}
+@media (max-width:820px){.train{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.kern{grid-template-columns:1fr 1fr}.kern div:nth-child(2){border-right:0}.kern div:nth-child(-n+2){border-bottom:2px solid var(--zwart)}.rij{grid-template-columns:100px 1fr 36px}.wandrij{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><p>Laden...</p></div>
+<div class="toast" id="toast">Gekopieerd</div>
+
+<script>
+/* ===================== CONFIG ===================== */
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbyD1NJij64G3vsVIQEFwDmNpoGCx2aLUPrzAsKEeqXnNy56aCjtRNM5xpJHZoDZcVgM/exec"; // zelfde Apps Script URL als in het formulier. Leeg = voorbeelddata
+const WANDEN = {"sennen-cove":"Sennen Cove","porthgwarra":"Porthgwarra","bosigran":"Bosigran","church-window":"Church Window","lands-end-back":"Lands End Back","commando-ridge":"Commando Ridge","battleship-island":"Battleship Island","battleship-slab":"Battleship Slab","tower-slab":"Tower Slab","tower-ridge":"Tower Ridge","devils-staircase":"Devil's Staircase","kids":"Kids area","lands-end":"Lands End"};
+const MIN_N = 5; // onder dit aantal reacties trekken we geen conclusies
+/* ================================================== */
+
+// Opgeslagen waarden (sleutels) zijn altijd Nederlands. Alleen de weergave hieronder wisselt van taal.
+const STIJLEN=["Dynamisch","Statisch en technisch","Comp style","Slab en balans","Overhang en power","Crimpy","Puzzelen","Eng of hoog"];
+const TAAL_KEY="mono_routecheck_dash_taal_v1";
+const TEKST={
+  nl:{
+    locale:"nl-NL", laden:"Laden...", gekopieerd:"Gekopieerd", onbekend:"Onbekend",
+    geenToegang:"Geen toegang. Open het dashboard via de link met sleutel (#key=...). Vraag hem bij Lisanne.",
+    laadFout:"Data laden lukte niet. Check de ENDPOINT in dashboard.html en of de Apps Script web-app voor iedereen openstaat.",
+    niveaus:{"start":"Net begonnen","4-5":"4 tot 5","6a-6b":"6A tot 6B+","6c-7a":"6C tot 7A","7a+-7b":"7A+ tot 7B","7b+":"7B+ en hoger"},
+    freq:{eerste:"Eerste keer",jaar:"Paar keer per jaar",maand:"Paar keer per maand",week:"Elke week",vaste:"2+ per week"},
+    leeftijd:{"-12":"Jonger dan 12","12-17":"12 tot 17","18-24":"18 tot 24","25-34":"25 tot 34","35-49":"35 tot 49","50+":"50+"},
+    fit:{weinig:"Te weinig",goed:"Precies goed",veel:"Meer dan genoeg"},
+    grade:{soft:"Te makkelijk",klopt:"Klopt",zwaar:"Te zwaar",wisselend:"Heel wisselend"},
+    halopt:{top:"Top",oke:"Oké",beter:"Kan beter"},
+    hal:{hal_grips:"Schone grepen en treden",hal_drukte:"Ruimte op de wand",hal_sfeer:"Sfeer in de hal"},
+    lengte:{"-160":"Korter dan 1,60","160-170":"1,60 tot 1,70","170-180":"1,70 tot 1,80","180-190":"1,80 tot 1,90","190+":"1,90 of langer"},
+    terug:{ja:"Ja, project",misschien:"Misschien",nee:"Nee, geen project",onbekend:"Een project? Wat is dat?"},
+    stijl:s=>s,
+    sig:{
+      teWeinig:l=>`Te weinig routes voor ${l}`, teWeinigT:(p,l)=>`${p}% van de klimmers op ${l} vindt dat er te weinig op hun niveau hangt.`,
+      ruim:l=>`Veel aanbod voor ${l}`, ruimT:(p,l)=>`${p}% van ${l} vindt het meer dan genoeg. Misschien kunnen er routes naar een ander niveau.`,
+      soft:l=>`Grades te makkelijk bij ${l}`, softT:(p,l)=>`${p}% van ${l} vindt de grades te makkelijk.`,
+      zwaar:l=>`Grades te zwaar bij ${l}`, zwaarT:(p,l)=>`${p}% van ${l} vindt de grades te zwaar.`,
+      laag:w=>`${w} scoort laag`, laagT:g=>`Gemiddeld ${g} van 5.`,
+      minder:w=>`${w} scoort lager dan de vorige set`, minderT:(o,n)=>`Van ${o} naar ${n}. Check de tips.`,
+      beter:w=>`${w} scoort hoger dan de vorige set`, beterT:(o,n)=>`Van ${o} naar ${n}. Laat de setters weten wat werkt.`,
+      meer:st=>`Meer ${st} gewenst`, meerT:(p,st)=>`${p}% mist ${st} op de wand.`,
+      hal:l=>`${l}: kan beter`, halT:(p,l)=>`${p}% geeft ${l} een kan-beter.`,
+      klein:()=>`Kleinere klimmers komen tekort`, kleinT:(pk,pl)=>`${pk}% van de klimmers onder 1,70 vindt dat er te weinig op hun niveau hangt, tegen ${pl}% van de langere klimmers. Check of routes alleen met een lange reach werken.`
+    },
+    asana:{wand:"Wand",periode:"Periode",aantal:"Aantal reacties",goed:"[Goed]",actie:"[Actie]"},
+    alleWanden:"Alle wanden", periodes:{nu:"Huidige set",vorige:"Vorige set",30:"Laatste 30 dagen",alles:"Alles"},
+    teWeinigReacties:"Te weinig reacties voor een conclusie", vaag:n=>`Vaag = minder dan ${n} reacties`,
+    voorbeelddata:"Voorbeelddata", bijgewerkt:"Bijgewerkt", fWand:"Wand", fPeriode:"Periode",
+    demo:"Dit zijn verzonnen antwoorden, zodat je ziet hoe het dashboard werkt. Straks staan hier de echte reacties.",
+    reacties:"reacties", blij:"gemiddelde score", vsVorige:"vs vorige", genoeg:"genoeg op eigen niveau", gradesKlopt:"vindt de grades kloppen",
+    sigKop:"Actiepunten", sigUitleg:n=>`Komt automatisch uit de antwoorden, vanaf ${n} reacties. Met "Kopieer alles" neem je de lijst mee.`,
+    kopieerAlle:"Kopieer alles", goedNieuws:"goed nieuws",
+    geenSignalen:"Nog geen actiepunten. Er zijn te weinig reacties, of alles gaat goed.",
+    setsKop:"Score per set, per wand", setsUitleg:"Gemiddelde score per set, van oud naar nieuw. Geel is de set die je bekijkt. Nieuwe set? Zet hem in de tab Sets van de Sheet.", geenSets:"Nog geen sets",
+    fitKop:"Genoeg op elk niveau?", fitUitleg:"Per niveau, zoals klimmers het zelf invullen. Rood betekent te weinig routes.",
+    gradeKop:"Klopten de grades?", gradeUitleg:"Zonder de antwoorden 'Geen idee'.",
+    stijlKop:"Stijl: gevonden en gemist", stijlUitleg:"Zwart: hoe vaak klimmers een stijl tegenkwamen. Geel: hoe vaak ze er meer van willen. Is geel langer dan zwart, dan mist er iets.", gevoeld:"Gevonden", gemist:"Gemist",
+    halKop:"De hal", halUitleg:"Deze vragen zijn optioneel, dus er zijn minder antwoorden.",
+    wieKop:"Wie vulden het in?", wieUitleg:"Vergelijk dit met wie er echt klimt. Vooral sterke klimmers en weinig beginners? Houd daar rekening mee.",
+    kNiveau:"Niveau", kFreq:"Hoe vaak bij MONO", kLengte:"Lengte", kLeeftijd:"Leeftijd",
+    tipsKop:"Tips voor de routesetters", tipsUitleg:n=>`${n} tips, nieuwste eerst.`, geenTips:"Nog geen tips.",
+    perLengte:"Per lengte", perNiveau:"Per niveau",
+    terugKop:"Kom je terug voor een project?", terugUitleg:"Per wand. Veel 'ja' betekent dat de set mensen terug laat komen.",
+    wk1:"week 1", daarna:"daarna",
+    foutKop:n=>n===1?"Er klopt iets niet in de Sheet":`Er kloppen ${n} dingen niet in de Sheet`,
+    fout:{
+      geenSet:(n,w)=>`${n} ${n===1?"antwoord hoort":"antwoorden horen"} bij geen enkele set (${w}). Zet de set in de tab Sets, met de juiste wand en setdatum.`,
+      wandOnbekendSets:w=>`In de tab Sets staat een wand die niet bestaat: ${w}. Kies de wand uit de keuzelijst.`,
+      datumMistSets:w=>`In de tab Sets mist een geldige setdatum bij: ${w}.`,
+      geenSetsVoorWand:w=>`Voor deze wanden staat nog geen enkele set in de tab Sets: ${w}.`,
+      wandOnbekendAntw:(n,w)=>`${n} ${n===1?"antwoord heeft":"antwoorden hebben"} een wand die niet bestaat (${w}). Controleer de link achter de QR-code.`,
+      geenWand:n=>`${n} ${n===1?"antwoord is":"antwoorden zijn"} binnengekomen zonder wand.`,
+      trainDatum:t=>`In de tab Trainingen mist een geldige begindatum bij: ${t}.`,
+      trainGroep:t=>`In de tab Trainingen staat bij "${t}" geen geldige groep. Kies regulier of selectie.`,
+      trainVolgorde:t=>`In de tab Trainingen ligt de einddatum vóór de begindatum bij: ${t}.`
+    },
+    trainKop:"Trainingsplanning", trainUitleg:"Waar de trainers nu en de komende weken aan werken. Handig om rekening mee te houden bij het bouwen. De trainers vullen dit in de tab Trainingen van de Sheet.",
+    regulier:"Reguliere trainingen", selectie:"Selectietrainingen", nuBezig:"nu", vanaf:"vanaf", tm:"t/m", geenTrain:"Nog niets gepland."
+  },
+  en:{
+    locale:"en-GB", laden:"Loading...", gekopieerd:"Copied", onbekend:"Unknown",
+    geenToegang:"No access. Open the dashboard via the link with the key (#key=...). Ask Lisanne for it.",
+    laadFout:"Could not load the data. Check the ENDPOINT in dashboard.html and whether the Apps Script web app is open to everyone.",
+    niveaus:{"start":"Just started","4-5":"4 to 5","6a-6b":"6A to 6B+","6c-7a":"6C to 7A","7a+-7b":"7A+ to 7B","7b+":"7B+ and up"},
+    freq:{eerste:"First time",jaar:"A few times a year",maand:"A few times a month",week:"Every week",vaste:"2+ a week"},
+    leeftijd:{"-12":"Under 12","12-17":"12 to 17","18-24":"18 to 24","25-34":"25 to 34","35-49":"35 to 49","50+":"50+"},
+    fit:{weinig:"Too little",goed:"Just right",veel:"More than enough"},
+    grade:{soft:"Too easy",klopt:"About right",zwaar:"Too hard",wisselend:"All over the place"},
+    halopt:{top:"Great",oke:"Okay",beter:"Could be better"},
+    hal:{hal_grips:"Clean holds and footholds",hal_drukte:"Space on the wall",hal_sfeer:"Vibe in the gym"},
+    lengte:{"-160":"Under 1.60 m","160-170":"1.60 to 1.70 m","170-180":"1.70 to 1.80 m","180-190":"1.80 to 1.90 m","190+":"1.90 m or taller"},
+    terug:{ja:"Yes, project",misschien:"Maybe",nee:"No, no project",onbekend:"A project? What's that?"},
+    stijl:s=>({"Dynamisch":"Dynamic","Statisch en technisch":"Static and technical","Comp style":"Comp style","Slab en balans":"Slab and balance","Overhang en power":"Overhang and power","Crimpy":"Crimpy","Puzzelen":"Puzzling","Eng of hoog":"Scary or high"}[s]||s),
+    sig:{
+      teWeinig:l=>`Too few routes for ${l}`, teWeinigT:(p,l)=>`${p}% of climbers at ${l} feel there's too little at their level.`,
+      ruim:l=>`Lots on offer for ${l}`, ruimT:(p,l)=>`${p}% of ${l} say it's more than enough. Some routes could move to another level.`,
+      soft:l=>`Grades too easy at ${l}`, softT:(p,l)=>`${p}% of ${l} find the grades too easy.`,
+      zwaar:l=>`Grades too hard at ${l}`, zwaarT:(p,l)=>`${p}% of ${l} find the grades too hard.`,
+      laag:w=>`${w} scores low`, laagT:g=>`Average ${g} out of 5.`,
+      minder:w=>`${w} scores lower than the previous set`, minderT:(o,n)=>`From ${o} to ${n}. Check the tips.`,
+      beter:w=>`${w} scores higher than the previous set`, beterT:(o,n)=>`From ${o} to ${n}. Let the setters know what works.`,
+      meer:st=>`More ${st} wanted`, meerT:(p,st)=>`${p}% miss ${st} on the wall.`,
+      hal:l=>`${l}: could be better`, halT:(p,l)=>`${p}% rate ${l} as could be better.`,
+      klein:()=>`Shorter climbers are missing out`, kleinT:(pk,pl)=>`${pk}% of climbers under 1.70 m feel there's too little at their level, versus ${pl}% of taller climbers. Check whether routes only work with a long reach.`
+    },
+    asana:{wand:"Wall",periode:"Period",aantal:"Responses",goed:"[Good]",actie:"[Action]"},
+    alleWanden:"All walls", periodes:{nu:"Current set",vorige:"Previous set",30:"Last 30 days",alles:"All"},
+    teWeinigReacties:"Too few responses for a conclusion", vaag:n=>`Faded = fewer than ${n} responses`,
+    voorbeelddata:"Sample data", bijgewerkt:"Updated", fWand:"Wall", fPeriode:"Period",
+    demo:"These are made-up answers, so you can see how the dashboard works. Soon the real responses will show here.",
+    reacties:"responses", blij:"average score", vsVorige:"vs previous", genoeg:"enough at own level", gradesKlopt:"say the grades are right",
+    sigKop:"Action points", sigUitleg:n=>`Generated from the answers, from ${n} responses up. Use "Copy all" to take the list with you.`,
+    kopieerAlle:"Copy all", goedNieuws:"good news",
+    geenSignalen:"No action points yet. Too few responses, or everything's going well.",
+    setsKop:"Score per set, per wall", setsUitleg:"Average score per set, old to new. Yellow is the set you're viewing. New set? Add it to the Sets tab of the Sheet.", geenSets:"No sets yet",
+    fitKop:"Enough at every level?", fitUitleg:"Per level, as climbers fill it in themselves. Red means too few routes.",
+    gradeKop:"Were the grades right?", gradeUitleg:"Without the 'No idea' answers.",
+    stijlKop:"Style: found and missed", stijlUitleg:"Black: how often climbers came across a style. Yellow: how often they want more of it. If yellow is longer than black, something's missing.", gevoeld:"Found", gemist:"Missed",
+    halKop:"The gym", halUitleg:"These questions are optional, so there are fewer answers.",
+    wieKop:"Who filled it in?", wieUitleg:"Compare this with who actually climbs here. Mostly strong climbers and few beginners? Keep that in mind.",
+    kNiveau:"Level", kFreq:"How often at MONO", kLengte:"Height", kLeeftijd:"Age",
+    tipsKop:"Tips for the routesetters", tipsUitleg:n=>`${n} tips, newest first.`, geenTips:"No tips yet.",
+    perLengte:"By height", perNiveau:"By level",
+    terugKop:"Coming back for a project?", terugUitleg:"Per wall. Lots of 'yes' means the set brings people back.",
+    wk1:"week 1", daarna:"after",
+    foutKop:n=>n===1?"Something's off in the Sheet":`${n} things are off in the Sheet`,
+    fout:{
+      geenSet:(n,w)=>`${n} ${n===1?"answer doesn't":"answers don't"} belong to any set (${w}). Add the set to the Sets tab, with the right wall and set date.`,
+      wandOnbekendSets:w=>`The Sets tab has a wall that doesn't exist: ${w}. Pick the wall from the dropdown.`,
+      datumMistSets:w=>`The Sets tab is missing a valid set date for: ${w}.`,
+      geenSetsVoorWand:w=>`These walls don't have a single set in the Sets tab yet: ${w}.`,
+      wandOnbekendAntw:(n,w)=>`${n} ${n===1?"answer has":"answers have"} a wall that doesn't exist (${w}). Check the link behind the QR code.`,
+      geenWand:n=>`${n} ${n===1?"answer came":"answers came"} in without a wall.`,
+      trainDatum:t=>`The Trainingen tab is missing a valid start date for: ${t}.`,
+      trainGroep:t=>`In the Trainingen tab, "${t}" has no valid group. Pick regulier or selectie.`,
+      trainVolgorde:t=>`In the Trainingen tab, the end date is before the start date for: ${t}.`
+    },
+    trainKop:"Training plan", trainUitleg:"What the trainers are working on now and in the coming weeks. Useful to keep in mind when setting. The trainers fill this in on the Trainingen tab of the Sheet.",
+    regulier:"Regular trainings", selectie:"Selection trainings", nuBezig:"now", vanaf:"from", tm:"until", geenTrain:"Nothing planned yet."
+  }
+};
+const KLEUR={terug:{ja:"#000",misschien:"#C9C9C9",nee:"#FFD23F",onbekend:"#2F5BFF"},fit:{weinig:"#E0442B",goed:"#000",veel:"#C9C9C9"},grade:{soft:"#2F5BFF",klopt:"#000",zwaar:"#E0442B",wisselend:"#FFD23F"},halopt:{top:"#000",oke:"#C9C9C9",beter:"#E0442B"}};
+
+const hashP = new URLSearchParams(location.hash.slice(1));
+function leesTaal(){try{return localStorage.getItem(TAAL_KEY)}catch(e){return null}}
+function schrijfTaal(t){try{localStorage.setItem(TAAL_KEY,t)}catch(e){}}
+let taal = hashP.get("lang")==="en" ? "en" : (leesTaal()==="en" ? "en" : "nl");
+let T, NIVEAUS, FREQ, LEEFTIJD, FIT, GRADE, HALOPT, HAL, LENGTES, TERUG;
+function zetTaal(t){
+  taal=t; T=TEKST[t]; document.documentElement.lang=t;
+  const lijst=(o,k)=>Object.entries(o).map(([w,l])=>k?[w,l,KLEUR[k][w]]:[w,l]);
+  NIVEAUS=lijst(T.niveaus); FREQ=lijst(T.freq); LEEFTIJD=lijst(T.leeftijd);
+  FIT=lijst(T.fit,"fit"); GRADE=lijst(T.grade,"grade"); HALOPT=lijst(T.halopt,"halopt"); HAL=lijst(T.hal);
+  LENGTES=lijst(T.lengte); TERUG=lijst(T.terug,"terug");
+  document.getElementById("toast").textContent=T.gekopieerd;
+}
+zetTaal(taal);
+
+let DATA=null, demo=false, filt={wand:"alle",periode:"nu"};
+// Welke set per wand: 0 = huidige, 1 = vorige. Bij 30 dagen of alles vergelijken we de huidige set.
+const setOffset=()=>filt.periode==="vorige"?1:0;
+const key = hashP.get("key")||"";
+
+async function laad(){
+  if(!ENDPOINT){ DATA=voorbeeld(); demo=true; return render(); }
+  try{
+    const r = await fetch(ENDPOINT+"?key="+encodeURIComponent(key));
+    const j = await r.json();
+    if(j.fout){ document.getElementById("app").innerHTML=`<div class="waarschuwing" role="alert"><b>${T.geenToegang}</b></div>`; return; }
+    DATA=j; render();
+  }catch(e){ document.getElementById("app").innerHTML=`<div class="waarschuwing" role="alert"><b>${T.laadFout}</b></div>`; }
+}
+
+/* ---------- helpers ---------- */
+const pct=(x,n)=>n?Math.round(x/n*100):0;
+const gem=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:null;
+const f1=x=>x==null?"–":x.toFixed(1).replace(".",",");
+const naamWand=w=>WANDEN[w]||w||T.onbekend;
+const lab=(lijst,k)=>(lijst.find(x=>x[0]===k)||[,k])[1];
+function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+
+function setsVan(w){ // chronologisch, uit Sets-tab plus wat in antwoorden voorkomt
+  const m=new Map();
+  // Sets die vooruit gepland staan (setdatum in de toekomst) tellen pas mee vanaf die dag
+  const vandaag=new Date(Date.now()+864e5).toISOString().slice(0,10);
+  DATA.sets.filter(s=>s.wand===w&&String(s.setdatum).slice(0,10)<vandaag).forEach(s=>m.set(s.naam||(w+" "+String(s.setdatum).slice(0,10)),String(s.setdatum).slice(0,10)));
+  DATA.antwoorden.filter(r=>r.wand===w&&r.set&&!m.has(r.set)).forEach(r=>m.set(r.set,r.setdatum||"0000"));
+  return [...m.entries()].sort((a,b)=>a[1]<b[1]?-1:1).map(e=>e[0]);
+}
+function gefilterd(){
+  let A=DATA.antwoorden;
+  if(filt.wand!=="alle") A=A.filter(r=>r.wand===filt.wand);
+  if(["nu","vorige"].includes(filt.periode)){const o=setOffset();A=A.filter(r=>{const s=setsVan(r.wand);return s.length>o&&r.set===s[s.length-1-o]})}
+  if(filt.periode==="30") {const g=Date.now()-30*864e5;A=A.filter(r=>new Date(r.ontvangen)>=g)}
+  return A;
+}
+// De set die bij de filter hoort (huidige of vorige); bij 30 dagen of alles de huidige
+function gekozenSet(w){const S=setsVan(w),o=setOffset();return S.length>o?S[S.length-1-o]:null}
+function setDatum(w,naam){const s=DATA.sets.find(x=>x.wand===w&&(x.naam||(w+" "+String(x.setdatum).slice(0,10)))===naam);
+  if(s) return new Date(s.setdatum); const r=DATA.antwoorden.find(x=>x.wand===w&&x.set===naam&&x.setdatum); return r?new Date(r.setdatum):null}
+function verdeling(A,veld,opties){const B=A.filter(r=>opties.some(o=>o[0]===r[veld]));return {n:B.length,delen:opties.map(o=>({k:o[0],l:o[1],c:o[2],x:B.filter(r=>r[veld]===o[0]).length}))}}
+
+/* ---------- signalen: vertaalt data naar iets wat je kunt doen ---------- */
+function signalen(A){
+  const s=[];
+  NIVEAUS.forEach(([k,l])=>{
+    const g=A.filter(r=>r.niveau===k&&r.fit), n=g.length; if(n<MIN_N) return;
+    const w=pct(g.filter(r=>r.fit==="weinig").length,n), v=pct(g.filter(r=>r.fit==="veel").length,n);
+    if(w>=40) s.push({t:"actie",kop:T.sig.teWeinig(l),tekst:T.sig.teWeinigT(w,l),n});
+    else if(v>=55) s.push({t:"info",kop:T.sig.ruim(l),tekst:T.sig.ruimT(v,l),n});
+    const gg=A.filter(r=>r.niveau===k&&["soft","klopt","zwaar","wisselend"].includes(r.grade)), gn=gg.length;
+    if(gn>=MIN_N){
+      const so=pct(gg.filter(r=>r.grade==="soft").length,gn), zw=pct(gg.filter(r=>r.grade==="zwaar").length,gn);
+      if(so>=40) s.push({t:"actie",kop:T.sig.soft(l),tekst:T.sig.softT(so,l),n:gn});
+      if(zw>=40) s.push({t:"actie",kop:T.sig.zwaar(l),tekst:T.sig.zwaarT(zw,l),n:gn});
+    }
+  });
+  const wanden = filt.wand==="alle"?Object.keys(WANDEN):[filt.wand];
+  wanden.forEach(w=>{
+    const o=setOffset(), S=setsVan(w); if(S.length<1+o) return;
+    const nu=DATA.antwoorden.filter(r=>r.wand===w&&r.set===S[S.length-1-o]&&r.happy).map(r=>+r.happy);
+    if(nu.length>=MIN_N && gem(nu)<3) s.push({t:"actie",kop:T.sig.laag(naamWand(w)),tekst:T.sig.laagT(f1(gem(nu))),n:nu.length});
+    if(S.length<2+o) return;
+    const oud=DATA.antwoorden.filter(r=>r.wand===w&&r.set===S[S.length-2-o]&&r.happy).map(r=>+r.happy);
+    if(nu.length<MIN_N||oud.length<MIN_N) return;
+    const d=gem(nu)-gem(oud);
+    if(d<=-.4) s.push({t:"actie",kop:T.sig.minder(naamWand(w)),tekst:T.sig.minderT(f1(gem(oud)),f1(gem(nu))),n:nu.length});
+    if(d>=.4) s.push({t:"goed",kop:T.sig.beter(naamWand(w)),tekst:T.sig.beterT(f1(gem(oud)),f1(gem(nu))),n:nu.length});
+  });
+  const M=A.filter(r=>r.mist&&r.mist.length);
+  if(M.length>=10) STIJLEN.forEach(st=>{const p=pct(M.filter(r=>r.mist.includes(st)).length,M.length); if(p>=30) s.push({t:"actie",kop:T.sig.meer(T.stijl(st).toLowerCase()),tekst:T.sig.meerT(p,T.stijl(st).toLowerCase()),n:M.length});});
+  HAL.forEach(([k,l])=>{const B=A.filter(r=>r[k]);if(B.length<8)return;const p=pct(B.filter(r=>r[k]==="beter").length,B.length);if(p>=35)s.push({t:"actie",kop:T.sig.hal(l),tekst:T.sig.halT(p,l.toLowerCase()),n:B.length});});
+  const K=A.filter(r=>["-160","160-170"].includes(r.lengte)&&r.fit), L=A.filter(r=>["170-180","180-190","190+"].includes(r.lengte)&&r.fit);
+  if(K.length>=MIN_N&&L.length>=MIN_N){const pk=pct(K.filter(r=>r.fit==="weinig").length,K.length),pl=pct(L.filter(r=>r.fit==="weinig").length,L.length);
+    if(pk-pl>=25) s.push({t:"actie",kop:T.sig.klein(),tekst:T.sig.kleinT(pk,pl),n:K.length+L.length});}
+  return s.sort((a,b)=>(a.t==="actie"?0:1)-(b.t==="actie"?0:1));
+}
+
+/* ---------- controle: wat klopt er niet in de Sheet? ---------- */
+function controle(){
+  const f=[], uniek=a=>[...new Set(a)], geldig=v=>v!==""&&v!=null&&!isNaN(new Date(v));
+  const A=DATA.antwoorden, S=DATA.sets||[], TR=DATA.trainingen||[];
+  const los=A.filter(r=>r.wand&&WANDEN[r.wand]&&(!r.set||r.set==="onbekend"));
+  if(los.length) f.push(T.fout.geenSet(los.length,uniek(los.map(r=>naamWand(r.wand))).join(", ")));
+  const vreemd=uniek(S.filter(s=>!WANDEN[s.wand]).map(s=>esc(s.wand)));
+  if(vreemd.length) f.push(T.fout.wandOnbekendSets(vreemd.join(", ")));
+  const zonderDatum=uniek(S.filter(s=>WANDEN[s.wand]&&!geldig(s.setdatum)).map(s=>naamWand(s.wand)));
+  if(zonderDatum.length) f.push(T.fout.datumMistSets(zonderDatum.join(", ")));
+  const zonderSets=Object.keys(WANDEN).filter(w=>!S.some(s=>s.wand===w));
+  if(zonderSets.length&&S.length) f.push(T.fout.geenSetsVoorWand(zonderSets.map(naamWand).join(", ")));
+  const fouteWand=A.filter(r=>r.wand&&!WANDEN[r.wand]);
+  if(fouteWand.length) f.push(T.fout.wandOnbekendAntw(fouteWand.length,uniek(fouteWand.map(r=>esc(r.wand))).join(", ")));
+  const geenWand=A.filter(r=>!r.wand).length;
+  if(geenWand) f.push(T.fout.geenWand(geenWand));
+  TR.forEach(t=>{const naam=esc(t.thema);
+    if(!geldig(t.van)) f.push(T.fout.trainDatum(naam));
+    else if(geldig(t.tot)&&new Date(t.tot)<new Date(t.van)) f.push(T.fout.trainVolgorde(naam));
+    if(!/^(reg|sel)/.test(t.groep||"")) f.push(T.fout.trainGroep(naam));});
+  return f;
+}
+
+/* ---------- render ---------- */
+function stackRij(label,v){
+  const laag=v.n<MIN_N;
+  return `<div class="rij ${laag?'laag':''}" title="${laag?T.teWeinigReacties:''}"><span>${label}</span>
+    <div class="stack">${v.delen.map(d=>`<span style="width:${pct(d.x,v.n)}%;background:${d.c}" title="${d.l}: ${pct(d.x,v.n)}%"></span>`).join("")}</div><span class="n">n=${v.n}</span></div>`;
+}
+function legenda(o){return `<div class="legenda">${o.map(x=>`<span><i style="background:${x[2]}"></i>${x[1]}</span>`).join("")}<span>${T.vaag(MIN_N)}</span></div>`}
+
+function render(){
+  const A=gefilterd(), n=A.length;
+  const happy=gem(A.filter(r=>r.happy).map(r=>+r.happy));
+  const fitV=verdeling(A,"fit",FIT), gr=A.filter(r=>["soft","klopt","zwaar","wisselend"].includes(r.grade));
+  const sig=signalen(A);
+
+  // delta happiness huidige vs vorige set (gemiddeld over wanden in filter)
+  const ws = filt.wand==="alle"?Object.keys(WANDEN):[filt.wand]; const ds=[];
+  ws.forEach(w=>{const o=setOffset(),S=setsVan(w);if(S.length<2+o)return;
+    const nu=DATA.antwoorden.filter(r=>r.wand===w&&r.set===S[S.length-1-o]&&r.happy).map(r=>+r.happy);
+    const oud=DATA.antwoorden.filter(r=>r.wand===w&&r.set===S[S.length-2-o]&&r.happy).map(r=>+r.happy);
+    if(nu.length>=MIN_N&&oud.length>=MIN_N) ds.push(gem(nu)-gem(oud));});
+  let delta=gem(ds); if(delta!=null&&Math.abs(delta)<0.05) delta=0; // geen "-0,0"
+
+  // Van wanneer tot wanneer de feedback in deze selectie binnenkwam
+  const tijden=A.map(r=>+new Date(r.ontvangen)).filter(t=>!isNaN(t));
+  const dm=t=>new Date(t).toLocaleDateString(T.locale,{day:"numeric",month:"short"});
+  const bereik=tijden.length?(dm(Math.min(...tijden))===dm(Math.max(...tijden))?dm(Math.min(...tijden)):dm(Math.min(...tijden))+" "+T.tm+" "+dm(Math.max(...tijden))):"";
+  let h=`<header><div><svg class="logo" viewBox="0 0 553.5 553.5" role="img" aria-label="MONO"><path d="M553.5 553.5V0L276.632 276.632L0 0V553.5Z" fill="currentColor"/></svg><h1>Routecheck</h1>
+    <div class="periode">${T.periodes[filt.periode]}${bereik?": "+bereik:""}</div>
+    <div class="meta">${demo?T.voorbeelddata:T.bijgewerkt+" "+new Date(DATA.bijgewerkt).toLocaleString(T.locale,{dateStyle:"medium",timeStyle:"short"})}</div></div>
+    <div class="filters">
+      <label>${T.fWand}<select id="fw"><option value="alle">${T.alleWanden}</option>${Object.entries(WANDEN).map(([k,v])=>`<option value="${k}" ${filt.wand===k?"selected":""}>${v}</option>`).join("")}</select></label>
+      <label>${T.fPeriode}<select id="fp">${["nu","vorige","30","alles"].map(k=>[k,T.periodes[k]]).map(([k,v])=>`<option value="${k}" ${filt.periode===k?"selected":""}>${v}</option>`).join("")}</select></label>
+      <div class="taal" role="group" aria-label="Taal / Language"><button data-taal="nl" aria-pressed="${taal==='nl'}">NL</button><button data-taal="en" aria-pressed="${taal==='en'}">EN</button></div>
+    </div></header>`;
+  if(demo) h+=`<div class="demo">${T.demo}</div>`;
+  const fouten=controle();
+  if(fouten.length) h+=`<div class="waarschuwing" role="alert"><b>${T.foutKop(fouten.length)}</b><ul>${fouten.map(f=>`<li>${f}</li>`).join("")}</ul></div>`;
+
+  h+=`<div class="kern">
+    <div><b>${n}</b><span>${T.reacties}</span></div>
+    <div><b>${f1(happy)}<small style="font-size:.45em;font-weight:600"> / 5</small></b><span>${T.blij}</span>${delta!=null?`<em class="${delta>=0?'up':'down'}">${delta>=0?"+":""}${f1(delta)} ${T.vsVorige}</em>`:""}</div>
+    <div><b>${pct(fitV.delen[1].x,fitV.n)}%</b><span>${T.genoeg}</span></div>
+    <div><b>${pct(gr.filter(r=>r.grade==="klopt").length,gr.length)}%</b><span>${T.gradesKlopt}</span></div></div>`;
+
+  h+=`<div class="grid">`;
+  h+=`<section class="signalen vol"><div class="sigkop"><div><h2>${T.sigKop}</h2><p class="uitleg">${T.sigUitleg(MIN_N)}</p></div>
+    ${sig.length?`<button class="knop licht" data-alles="1">${T.kopieerAlle}</button>`:""}</div>
+    ${sig.length?sig.map((s,k)=>`<div class="sig ${s.t}"><span class="dot"></span><div class="t"><b>${esc(s.kop)}</b><br>${esc(s.tekst)}<small>n=${s.n}${s.t==="goed"?" · "+T.goedNieuws:""}</small></div></div>`).join("")
+      :`<p class="leeg" style="color:#aaa">${T.geenSignalen}</p>`}</section>`;
+
+
+  // Trainingsplanning: wat loopt nu en wat komt eraan (verleden laten we weg)
+  const vandaag=new Date(); vandaag.setHours(0,0,0,0);
+  const dag=v=>new Date(v).toLocaleDateString(T.locale,{day:"numeric",month:"short"});
+  const TR=(DATA.trainingen||[]).map(t=>({...t,v:t.van?new Date(t.van):null,e:t.tot?new Date(t.tot):null}))
+    .filter(t=>t.v&&!isNaN(t.v)&&(t.e&&!isNaN(t.e)?t.e>=vandaag:t.v>=new Date(vandaag-28*864e5))).sort((a,b)=>a.v-b.v);
+  const trLijst=g=>{const L=TR.filter(t=>g==="selectie"?t.groep.startsWith("sel"):!t.groep.startsWith("sel")).slice(0,5);
+    return L.length?L.map(t=>`<div class="titem"><b>${esc(t.thema)}</b>${t.v<=vandaag?`<span class="nu">${T.nuBezig}</span>`:""}<span class="d">${t.v<=vandaag?"":T.vanaf+" "+dag(t.v)+" "}${t.e&&!isNaN(t.e)?T.tm+" "+dag(t.e):""}</span>${t.notitie?esc(t.notitie):""}</div>`).join(""):`<p class="leeg">${T.geenTrain}</p>`};
+  h+=`<section class="vol"><h2>${T.trainKop}</h2><p class="uitleg">${T.trainUitleg}</p>
+    <div class="train"><div><h3>${T.regulier}</h3>${trLijst("regulier")}</div><div><h3>${T.selectie}</h3>${trLijst("selectie")}</div></div></section>`;
+
+  // happiness per set
+  h+=`<section class="vol"><h2>${T.setsKop}</h2><p class="uitleg">${T.setsUitleg}</p>`;
+  ws.forEach(w=>{
+    const S=setsVan(w);
+    const bars=S.map((s,k)=>{const v=DATA.antwoorden.filter(r=>r.wand===w&&r.set===s&&r.happy).map(r=>+r.happy);const g=gem(v);
+      const sd=setDatum(w,s), R=DATA.antwoorden.filter(r=>r.wand===w&&r.set===s&&r.happy);
+      const w1=sd?gem(R.filter(r=>new Date(r.ontvangen)-sd<7*864e5).map(r=>+r.happy)):null, w2=sd?gem(R.filter(r=>new Date(r.ontvangen)-sd>=7*864e5).map(r=>+r.happy)):null;
+      return `<div class="setbar ${k===S.length-1-setOffset()?'nu':''} ${v.length<MIN_N?'laag':''}"><span class="v">${f1(g)}</span><div class="kolom" style="height:${g?g*18:4}px"></div><span class="l">${esc(s)}<br>n=${v.length}</span>${sd?`<span class="wk">${T.wk1} ${f1(w1)}<br>${T.daarna} ${f1(w2)}</span>`:""}</div>`}).join("");
+    h+=`<div class="wandrij"><span class="naam">${naamWand(w)}</span><div class="sets">${bars||`<span class="leeg">${T.geenSets}</span>`}</div></div>`;
+  });
+  h+=`</section>`;
+
+  h+=`<section><h2>${T.fitKop}</h2><p class="uitleg">${T.fitUitleg}</p>
+    <div style="font-weight:800;margin:4px 0">${T.perNiveau}</div>
+    ${NIVEAUS.map(([k,l])=>stackRij(l,verdeling(A.filter(r=>r.niveau===k),"fit",FIT))).join("")}
+    <div style="font-weight:800;margin:16px 0 4px">${T.perLengte}</div>
+    ${LENGTES.map(([k,l])=>stackRij(l,verdeling(A.filter(r=>r.lengte===k),"fit",FIT))).join("")}${legenda(FIT)}</section>`;
+
+  h+=`<section><h2>${T.terugKop}</h2><p class="uitleg">${T.terugUitleg}</p>
+    ${ws.map(w=>stackRij(naamWand(w),verdeling(DATA.antwoorden.filter(r=>r.wand===w&&r.set===gekozenSet(w)),"terug",TERUG))).join("")}${legenda(TERUG)}</section>`;
+  h+=`<section><h2>${T.gradeKop}</h2><p class="uitleg">${T.gradeUitleg}</p>
+    ${NIVEAUS.map(([k,l])=>stackRij(l,verdeling(A.filter(r=>r.niveau===k),"grade",GRADE))).join("")}${legenda(GRADE)}</section>`;
+
+  const S1=A.filter(r=>r.stijl&&r.stijl.length), M1=A.filter(r=>r.mist&&r.mist.length);
+  h+=`<section><h2>${T.stijlKop}</h2><p class="uitleg">${T.stijlUitleg}</p>
+    ${STIJLEN.map(st=>{const a=pct(S1.filter(r=>r.stijl.includes(st)).length,S1.length),b=pct(M1.filter(r=>r.mist.includes(st)).length,M1.length);
+      return `<div class="rij"><span>${T.stijl(st)}</span><div class="paar"><div class="enkel"><span style="width:${a}%;background:#000"></span></div><div class="enkel"><span style="width:${b}%;background:var(--geel);outline:1px solid #000"></span></div></div><span class="n">${a}/${b}%</span></div>`}).join("")}
+    <div class="legenda"><span><i style="background:#000"></i>${T.gevoeld} (n=${S1.length})</span><span><i style="background:var(--geel);outline:1px solid #000"></i>${T.gemist} (n=${M1.length})</span></div></section>`;
+
+  h+=`<section><h2>${T.halKop}</h2><p class="uitleg">${T.halUitleg}</p>
+    ${HAL.map(([k,l])=>stackRij(l,verdeling(A,k,HALOPT))).join("")}${legenda(HALOPT)}
+    <h2 style="margin-top:26px">${T.wieKop}</h2><p class="uitleg">${T.wieUitleg}</p>
+    ${[["niveau",NIVEAUS,T.kNiveau],["freq",FREQ,T.kFreq],["lengte",LENGTES,T.kLengte],["leeftijd",LEEFTIJD,T.kLeeftijd]].map(([veld,op,kop])=>{const B=A.filter(r=>r[veld]);return `<div style="font-weight:800;margin:14px 0 4px">${kop}</div>`+op.map(([k,l])=>{const x=B.filter(r=>r[veld]===k).length;return `<div class="rij"><span>${l}</span><div class="enkel"><span style="width:${pct(x,B.length)}%;background:#000"></span></div><span class="n">${x}</span></div>`}).join("")}).join('')}
+  </section>`;
+
+  const TIPS=A.filter(r=>r.tip&&String(r.tip).trim()).sort((a,b)=>a.ontvangen<b.ontvangen?1:-1);
+  h+=`<section class="vol"><h2>${T.tipsKop}</h2><p class="uitleg">${T.tipsUitleg(TIPS.length)}</p>
+    <div class="tips">${TIPS.length?TIPS.slice(0,60).map(r=>`<div class="tip">${esc(r.tip)}<div class="tags"><span>${naamWand(r.wand)}</span><span>${esc(lab(NIVEAUS,r.niveau))}</span>${r.happy?`<span>${r.happy}/5</span>`:""}<span>${new Date(r.ontvangen).toLocaleDateString(T.locale,{day:"numeric",month:"short"})}</span></div></div>`).join(""):`<p class="leeg">${T.geenTips}</p>`}</div></section>`;
+  h+=`</div>`;
+
+  const app=document.getElementById("app"); app.innerHTML=h;
+  document.getElementById("fw").onchange=e=>{filt.wand=e.target.value;render()};
+  document.getElementById("fp").onchange=e=>{filt.periode=e.target.value;render()};
+  app.querySelectorAll("[data-taal]").forEach(b=>b.onclick=()=>{zetTaal(b.dataset.taal);schrijfTaal(taal);render()});
+  const al=app.querySelector("[data-alles]"); if(al) al.onclick=()=>kopieer(sig.map(s=>`${s.t==="goed"?T.asana.goed:T.asana.actie} ${s.kop}: ${s.tekst} (n=${s.n})`).join("\n")+`\n\nDashboard: ${location.href}`);
+}
+
+async function kopieer(t){
+  try{await navigator.clipboard.writeText(t)}catch(e){const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove()}
+  const el=document.getElementById("toast");el.classList.add("aan");setTimeout(()=>el.classList.remove("aan"),1400);
+}
+
+/* ---------- voorbeelddata ---------- */
+function voorbeeld(){
+  let seed=7; const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647; const kies=a=>a[Math.floor(rnd()*a.length)];
+  const nu=Date.now(), sets=[], antwoorden=[];
+  Object.keys(WANDEN).forEach((w,wi)=>{
+    const aantal=3+(wi%2);
+    for(let k=0;k<aantal;k++){
+      const d=new Date(nu-(aantal-k)*28*864e5+wi*3*864e5); const naam=`${WANDEN[w]} ${d.toLocaleDateString("nl-NL",{day:"numeric",month:"short"})}`;
+      sets.push({wand:w,setdatum:d.toISOString(),naam});
+      const basis=[3.2,3.8,3.5,4.1,3.0,3.9][wi%6]+(k===aantal-1?(wi===2?-.7:.3):0);
+      for(let j=0;j<8+Math.floor(rnd()*14);j++){
+        const niv=kies(["start","4-5","4-5","6a-6b","6a-6b","6a-6b","6c-7a","6c-7a","7a+-7b","7b+"]);
+        const sterk=niv==="7a+-7b"||niv==="7b+"; const lg=kies(["-160","160-170","160-170","170-180","170-180","180-190","190+"]);
+        antwoorden.push({ontvangen:new Date(Math.min(+d+rnd()*25*864e5,nu-rnd()*36e5)).toISOString(),wand:w,set:naam,setdatum:d.toISOString().slice(0,10),
+          happy:Math.max(1,Math.min(5,Math.round(basis+(rnd()-.5)*2.2))),
+          fit:sterk?kies(["weinig","weinig","goed"]):kies(["goed","goed","goed","veel","weinig"]),
+          grade:niv==="start"?"geenidee":kies(niv==="6a-6b"?["zwaar","klopt","klopt","zwaar"]:["klopt","klopt","soft","wisselend"]),
+          stijl:STIJLEN.filter(()=>rnd()<.28), mist:rnd()<.8?STIJLEN.filter((s)=>rnd()<(s==="Slab en balans"||s==="Comp style"?.38:.1)):["niks"],
+          hal_grips:rnd()<.6?kies(["top","oke","beter","beter"]):"",hal_drukte:rnd()<.6?kies(["top","oke","oke","beter"]):"",hal_sfeer:rnd()<.6?kies(["top","top","oke"]):"",
+          tip:rnd()<.25?kies(["Meer slabs graag, de overhang is allemaal kracht.","Die gele op de compwand was de beste route van het jaar.","Te weinig tussen 6A en 6B, veel 5 en dan meteen zwaar.","Grips op de hoek zijn echt vies, glijden weg.","Leuk voor beginners, mijn kind toppte haar eerste!","Meer coordinatie-bewegingen, mag wat gekker.","Start van de blauwe is onduidelijk."]):"",
+          freq:kies(["eerste","jaar","maand","week","week","vaste"]),niveau:niv,leeftijd:kies(["-12","12-17","18-24","25-34","25-34","35-49","50+"]),
+          lengte:lg, terug:kies(["ja","ja","misschien","nee","nee","onbekend"])});
+        // kleinere klimmers vinden vaker te weinig
+        const lt=antwoorden[antwoorden.length-1]; if(["-160","160-170"].includes(lt.lengte)&&rnd()<.35) lt.fit="weinig";
+      }
+    }
+  });
+  const wk=n=>new Date(nu+n*7*864e5).toISOString();
+  const trainingen=[
+    {van:wk(-2),tot:wk(2),groep:"regulier",thema:"Slab en balans",notitie:"Voetenwerk en gewicht verplaatsen. Liefst een paar slabs van 5 tot 6A."},
+    {van:wk(2),tot:wk(6),groep:"regulier",thema:"Dynamisch",notitie:"Eerste sprongen en dead points, laag bij de grond."},
+    {van:wk(-1),tot:wk(3),groep:"selectie",thema:"Comp style",notitie:"Coördinatie en run-and-jumps, 6C en hoger."},
+    {van:wk(3),tot:wk(7),groep:"selectie",thema:"Crimpy en power",notitie:"Overhang, kleine grepen."}];
+  return {antwoorden,sets,trainingen,bijgewerkt:new Date().toISOString()};
+}
+
+laad();
+</script>
+</body>
+</html>
