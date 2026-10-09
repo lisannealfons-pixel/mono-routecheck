@@ -106,21 +106,21 @@ input:focus-visible{outline:3px solid var(--blauw);outline-offset:2px}
 .veldje:not(.leeg) .kopregel.wissel{font-weight:900;font-size:32px;letter-spacing:-.035em;line-height:1}
 .pillen{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .pillen .keuze{border-radius:99px;border-width:2.5px;padding:13px 2px;font-size:13px;font-weight:800;text-align:center;background:transparent}
-.pillen .keuze[aria-pressed="true"]{background:var(--geel);border-color:var(--zwart);color:var(--zwart)}
+.pillen .keuze[aria-pressed="true"]{background:var(--blauw);border-color:var(--blauw);color:var(--wit)}
 .veldje input[type=range]{-webkit-appearance:none;appearance:none;display:block;width:100%;height:46px;margin:0;background:transparent;cursor:pointer;--v:.5;touch-action:pan-y}
-/* de gele vulling loopt tot net voorbij de greep, zodat de greep op geel ligt */
+/* de blauwe vulling loopt tot net voorbij de greep, zodat de greep op blauw ligt */
 .veldje input[type=range]::-webkit-slider-runnable-track{height:46px;border-radius:99px;box-sizing:border-box;border:3px solid var(--zwart);
-  background:linear-gradient(to right,var(--geel) calc(20px + (100% - 40px) * var(--v) + 22px),#E3E2DC calc(20px + (100% - 40px) * var(--v) + 22px))}
+  background:linear-gradient(to right,var(--blauw) calc(20px + (100% - 40px) * var(--v) + 22px),#E3E2DC calc(20px + (100% - 40px) * var(--v) + 22px))}
 .veldje input[type=range]::-moz-range-track{height:40px;border-radius:99px;border:3px solid var(--zwart);
-  background:linear-gradient(to right,var(--geel) calc(20px + (100% - 40px) * var(--v) + 22px),#E3E2DC calc(20px + (100% - 40px) * var(--v) + 22px))}
-.veldje input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:30px;height:30px;margin-top:5px;border-radius:50%;background:var(--zwart);border:0;transition:transform .12s ease}
-.veldje input[type=range]::-moz-range-thumb{width:30px;height:30px;border-radius:50%;background:var(--zwart);border:0}
+  background:linear-gradient(to right,var(--blauw) calc(20px + (100% - 40px) * var(--v) + 22px),#E3E2DC calc(20px + (100% - 40px) * var(--v) + 22px))}
+.veldje input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:30px;height:30px;margin-top:5px;border-radius:50%;background:var(--wit);border:0;box-shadow:inset 0 0 0 3.5px var(--zwart);transition:transform .12s ease}
+.veldje input[type=range]::-moz-range-thumb{width:30px;height:30px;border-radius:50%;background:var(--wit);border:0;box-shadow:inset 0 0 0 3.5px var(--zwart)}
 .veldje input[type=range]:active::-webkit-slider-thumb{transform:scale(1.12)}
-/* nog niet aangeraakt: rustige grijze baan zonder rand, gele greep in het midden */
+/* nog niet aangeraakt: rustige grijze baan zonder rand, blauwe greep in het midden */
 .veldje.leeg input[type=range]::-webkit-slider-runnable-track{border-color:transparent;background:#E3E2DC}
 .veldje.leeg input[type=range]::-moz-range-track{border-color:transparent;background:#E3E2DC}
-.veldje.leeg input[type=range]::-webkit-slider-thumb{background:var(--geel);box-shadow:inset 0 0 0 3.5px var(--zwart)}
-.veldje.leeg input[type=range]::-moz-range-thumb{background:var(--geel);box-shadow:inset 0 0 0 3.5px var(--zwart)}
+.veldje.leeg input[type=range]::-webkit-slider-thumb{background:var(--blauw);box-shadow:inset 0 0 0 3.5px var(--zwart)}
+.veldje.leeg input[type=range]::-moz-range-thumb{background:var(--blauw);box-shadow:inset 0 0 0 3.5px var(--zwart)}
 .veldje .eindjes{display:flex;justify-content:space-between;font-size:12px;color:#555;margin-top:4px}
 /* Startscherm: grote kop in brede kapitalen op papierkleur, roze knop, onderaan een strook uitsneden van de foto */
 .start{flex:1;display:flex;flex-direction:column}
