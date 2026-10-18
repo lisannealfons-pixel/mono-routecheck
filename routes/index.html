@@ -217,8 +217,8 @@ const WEETJES = {
 
 // Greepkleuren, zoals op de wand
 const KLEUREN = ["#FFD23F","#2F5BFF","#E0442B","#1E9E5A","#FF8A1F","#8E44D9","#FF6FB5","#111111"];
-// Gradaties in de hal: 2 t/m 10. (De Fontainebleau-schaal ligt eronder, die tonen we hier niet.)
-const NIVEAUS = ["2","3","4","5","6","7","8","9","10"];
+// Niveau in de Fontainebleau-schaal. Opgeslagen in kleine letters ("6a+"), getoond als "6A+".
+const NIVEAUS = ["3","4","5","5+","6a","6a+","6b","6b+","6c","6c+","7a","7a+","7b","7b+","7c","7c+"];
 const PROFIEL_KEY = "mono_routecheck_profiel_v1";
 const GEDAAN_KEY = "mono_routecheck_gedaan_v1";
 
@@ -235,7 +235,7 @@ const TEKST = {
     wand:"Welke wand?", wandSub:"Kies de wand waar je net op klom.",
     over:"Tot slot: over jou",
     kort:{freq:"Hoe vaak klim je hier?",niveau:"Wat klim je meestal?",lengte:"Hoe lang ben je?",leeftijd:"Hoe oud ben je?"}, schuif:"Schuif om te kiezen", nog:n=>`Nog ${n} te gaan`, korter:"of korter", langer:"of langer",
-    eind:{niveau:["weet ik niet","10"],leeftijd:["onder 12","50+"]}, jaar:"jaar",
+    eind:{niveau:["weet ik niet","7C+"],lengte:["kort","lang"],leeftijd:["jong","50+"]}, jaar:"jaar",
     prototype:"<b>Prototype.</b> Dit scherm zien klimmers alleen via de algemene QR-code. Elke wand krijgt een eigen QR-bordje. Wie die scant, slaat deze stap over: de juiste wand staat al ingevuld en het antwoord wordt onder die wand opgeslagen.", prototypeKnop:"Probeer het zoals na het scannen van Bosigran",
     happy:"Hoe vond je deze set?", happyAria:"Score van 1 tot 5",
     hal:"En de hal?",
@@ -252,14 +252,14 @@ const TEKST = {
       freq:{titel:"Hoe vaak klim je bij MONO?", sub:"Dit vragen we maar één keer. Je telefoon onthoudt het.",
         opties:{eerste:["1e keer"],soms:["Soms"],week:["Wekelijks"],vaste:["2+/wk"]}},
       niveau:{titel:"Wat klim je meestal?", sub:"Wat je op een goede dag topt.",
-        start:"Weet ik nog niet", n:n=>`Niveau ${n}`},
+        start:"Weet ik nog niet", n:n=>n==="7c+"?"7C+ of hoger":n.toUpperCase()},
       lengte:{titel:"Hoe lang ben je?", sub:"Een verre move is voor iedereen anders. Zo zien de setters of een route alleen voor lange mensen werkt.",
         opties:{"-160":["Korter dan 1,60"],"160-170":["1,60 tot 1,70"],"170-180":["1,70 tot 1,80"],"180-190":["1,80 tot 1,90"],"190+":["1,90 of langer"]}},
       fit:{titel:"Was er genoeg voor jouw niveau?", sub:"",
         opties:{weinig:["Te weinig"],goed:["Precies goed"],veel:["Meer dan genoeg"]}},
       terug:{titel:"Kom je terug voor een project?", sub:"",
         opties:{ja:["Ja, ik heb een project"],misschien:["Misschien"],nee:["Nee, geen project"],onbekend:["Een project? Wat is dat?"]}},
-      grade:{titel:"Klopten de grades?", sub:"Voelde een 5 als een 5?",
+      grade:{titel:"Klopten de grades?", sub:"Voelde een 6A als een 6A?",
         opties:{soft:["Te makkelijk"],klopt:["Klopt"],zwaar:["Te zwaar"],wisselend:["Heel wisselend"],geenidee:["Geen idee"]}},
       stijl:{titel:"Welke stijlen kwam je tegen?", sub:"Je kan meerdere stijlen selecteren."},
       mist:{titel:"Wat zou je meer willen zien?", sub:"", niks:"Niks, het zat er allemaal in"},
@@ -274,7 +274,7 @@ const TEKST = {
     wand:"Which wall?", wandSub:"Pick the wall you just climbed.",
     over:"Finally: about you",
     kort:{freq:"How often do you climb here?",niveau:"What do you usually climb?",lengte:"How tall are you?",leeftijd:"How old are you?"}, schuif:"Slide to choose", nog:n=>`${n} to go`, korter:"or shorter", langer:"or taller",
-    eind:{niveau:["not sure","10"],leeftijd:["under 12","50+"]}, jaar:"years",
+    eind:{niveau:["not sure","7C+"],lengte:["short","tall"],leeftijd:["young","50+"]}, jaar:"years",
     prototype:"<b>Prototype.</b> Climbers only see this screen via the general QR code. Every wall gets its own QR sign. Scanning it skips this step: the right wall is already filled in and the answer is saved under that wall.", prototypeKnop:"Try it as if you scanned Bosigran",
     happy:"How did you like this set?", happyAria:"Score from 1 to 5",
     hal:"And the gym?",
@@ -291,14 +291,14 @@ const TEKST = {
       freq:{titel:"How often do you climb at MONO?", sub:"We only ask this once. Your phone remembers.",
         opties:{eerste:["1st time"],soms:["Sometimes"],week:["Weekly"],vaste:["2+/wk"]}},
       niveau:{titel:"What do you usually climb?", sub:"What you top on a good day.",
-        start:"Not sure yet", n:n=>`Level ${n}`},
+        start:"Not sure yet", n:n=>n==="7c+"?"7C+ or harder":n.toUpperCase()},
       lengte:{titel:"How tall are you?", sub:"A long move is different for everyone. This shows the setters if a route only works for tall people.",
         opties:{"-160":["Under 1.60 m"],"160-170":["1.60 to 1.70 m"],"170-180":["1.70 to 1.80 m"],"180-190":["1.80 to 1.90 m"],"190+":["1.90 m or taller"]}},
       fit:{titel:"Was there enough at your level?", sub:"",
         opties:{weinig:["Too little"],goed:["Just right"],veel:["More than enough"]}},
       terug:{titel:"Coming back for a project?", sub:"",
         opties:{ja:["Yes, I've got a project"],misschien:["Maybe"],nee:["No, no project"],onbekend:["A project? What's that?"]}},
-      grade:{titel:"Were the grades right?", sub:"Did a 5 feel like a 5?",
+      grade:{titel:"Were the grades right?", sub:"Did a 6A feel like a 6A?",
         opties:{soft:["Too easy"],klopt:["About right"],zwaar:["Too hard"],wisselend:["All over the place"],geenidee:["No idea"]}},
       stijl:{titel:"Which styles did you come across?", sub:"You can select multiple styles."},
       mist:{titel:"What would you like to see more of?", sub:"", niks:"Nothing, it had it all"},
@@ -339,11 +339,8 @@ let pad = [], i = 0, fout = "";
 
 function lees(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
 function schrijf(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
-let lengteCm = 175;
-function lengteBak(cm){return cm<160?"-160":cm<170?"160-170":cm<180?"170-180":cm<190?"180-190":"190+"}
-function lengteTekst(cm){const m=(cm/100).toFixed(2).replace(".",taal==="en"?".":","); return cm<=150?`${m} ${T.korter}`:cm>=200?`${m} ${T.langer}`:`${m} m`}
 // Hoe een gekozen antwoord groot in beeld komt: "25 tot 34" wordt "25 tot 34 jaar"
-function toon(q,tekst){return q==="leeftijd"&&/^\d+ \S+ \d+$/.test(tekst)?tekst+" "+T.jaar:tekst}
+function toon(q,tekst){return q==="leeftijd"&&/^\d+ \S+ \d+$/.test(tekst)?tekst+" "+T.jaar:q==="lengte"&&!/m$/.test(tekst)?tekst+" m":tekst}
 function knopBijwerken(){const k=document.querySelector(".door"), open=PROFIELVRAGEN.filter(x=>!p[x]).length; if(!k) return; k.disabled=open>0; k.textContent=open?T.nog(open):T.verstuur;}
 function profielCompleet(){return PROFIELVRAGEN.every(q=>p[q])}
 function label(vraag,waarde){const o=VRAGEN[vraag].opties.find(o=>o[0]===waarde);return o?o[1]:"";}
@@ -423,16 +420,12 @@ function render(){
       return `<div class="veldje ${leeg?"leeg":""}"><div class="kopregel wissel" data-vraag="${T.kort[q]}">${leeg?T.kort[q]:toon(q,o[k][1])}</div>
         <input type="range" min="0" max="${o.length-1}" step="1" value="${v}" data-schuif="${q}" aria-label="${T.kort[q]}" style="--v:${v/(o.length-1)}">
         <div class="eindjes"><span>${T.eind[q][0]}</span><span>${T.eind[q][1]}</span></div></div>`; };
-    const lg = !p.lengte;
-    if(lg) lengteCm = 175; else if(lengteBak(lengteCm)!==p.lengte) lengteCm = {"-160":155,"160-170":165,"170-180":175,"180-190":185,"190+":193}[p.lengte];
-    const komma = taal==="en"?".":",";
+    // Lengte en leeftijd allebei in groepen: zo blijft het echt anoniem, en werkt elke schuif hetzelfde.
     h += `<section class="stap"><h1 style="margin-bottom:14px">${T.over}</h1>
       <div class="veldje"><div class="kopregel">${T.kort.freq}</div>
         <div class="pillen">${VRAGEN.freq.opties.map(([w,t])=>`<button class="keuze" data-prof="freq" data-val="${w}" aria-pressed="${p.freq===w}">${t}</button>`).join("")}</div></div>
       ${schuif("niveau")}
-      <div class="veldje ${lg?"leeg":""}"><div class="kopregel wissel" data-vraag="${T.kort.lengte}">${lg?T.kort.lengte:lengteTekst(lengteCm)}</div>
-        <input type="range" min="150" max="200" step="1" value="${lengteCm}" data-schuif="lengte" aria-label="${T.kort.lengte}" style="--v:${(lengteCm-150)/50}">
-        <div class="eindjes"><span>1${komma}50 m</span><span>2${komma}00 m</span></div></div>
+      ${schuif("lengte")}
       ${schuif("leeftijd")}
       </section>` + onder({door:profielCompleet()?T.verstuur:T.nog(PROFIELVRAGEN.filter(q=>!p[q]).length),disabled:!profielCompleet()});
   }
@@ -467,9 +460,8 @@ function render(){
   document.querySelectorAll("[data-schuif]").forEach(el=>{
     const q=el.dataset.schuif, vak=el.closest(".veldje"), lab=vak.querySelector(".kopregel"); let vorige=null;
     const zet=()=>{ const v=+el.value;
-      if(q==="lengte"){ lengteCm=v; p.lengte=lengteBak(v); lab.textContent=lengteTekst(v); el.style.setProperty("--v",(v-150)/50); }
-      else { const o=VRAGEN[q].opties; p[q]=o[v][0]; lab.textContent=toon(q,o[v][1]); el.style.setProperty("--v",v/(o.length-1));
-        if(vorige!==null&&vorige!==v&&navigator.vibrate) navigator.vibrate(8); } // tikje bij elke stap, op telefoons die dat kunnen
+      const o=VRAGEN[q].opties; p[q]=o[v][0]; lab.textContent=toon(q,o[v][1]); el.style.setProperty("--v",v/(o.length-1));
+      if(vorige!==null&&vorige!==v&&navigator.vibrate) navigator.vibrate(8); // tikje bij elke stap, op telefoons die dat kunnen
       vorige=v; vak.classList.remove("leeg"); knopBijwerken(); };
     ["input","change","pointerdown","keydown"].forEach(ev=>el.addEventListener(ev,()=>setTimeout(zet,0)));
   });

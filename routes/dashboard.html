@@ -121,7 +121,7 @@ const TEKST={
     locale:"nl-NL", laden:"Laden...", gekopieerd:"Gekopieerd", onbekend:"Onbekend",
     geenToegang:"Geen toegang. Open het dashboard via de link met sleutel (#key=...). Vraag hem bij Lisanne.",
     laadFout:"Data laden lukte niet. Check de ENDPOINT in dashboard.html en of de Apps Script web-app voor iedereen openstaat.",
-    nivStart:"Weet ik niet", niv:n=>`Niveau ${n}`,
+    nivStart:"Weet ik niet", nivTop:"7C en hoger",
     freq:{eerste:"Eerste keer",soms:"Soms",week:"Elke week",vaste:"2+ per week"},
     leeftijd:{"-12":"Jonger dan 12","12-17":"12 tot 17","18-24":"18 tot 24","25-34":"25 tot 34","35-49":"35 tot 49","50+":"50+"},
     fit:{weinig:"Te weinig",goed:"Precies goed",veel:"Meer dan genoeg"},
@@ -182,7 +182,7 @@ const TEKST={
     locale:"en-GB", laden:"Loading...", gekopieerd:"Copied", onbekend:"Unknown",
     geenToegang:"No access. Open the dashboard via the link with the key (#key=...). Ask Lisanne for it.",
     laadFout:"Could not load the data. Check the ENDPOINT in dashboard.html and whether the Apps Script web app is open to everyone.",
-    nivStart:"Not sure", niv:n=>`Level ${n}`,
+    nivStart:"Not sure", nivTop:"7C and up",
     freq:{eerste:"First time",soms:"Sometimes",week:"Every week",vaste:"2+ a week"},
     leeftijd:{"-12":"Under 12","12-17":"12 to 17","18-24":"18 to 24","25-34":"25 to 34","35-49":"35 to 49","50+":"50+"},
     fit:{weinig:"Too little",goed:"Just right",veel:"More than enough"},
@@ -246,11 +246,14 @@ const hashP = new URLSearchParams(location.hash.slice(1));
 function leesTaal(){try{return localStorage.getItem(TAAL_KEY)}catch(e){return null}}
 function schrijfTaal(t){try{localStorage.setItem(TAAL_KEY,t)}catch(e){}}
 let taal = hashP.get("lang")==="en" ? "en" : (leesTaal()==="en" ? "en" : "nl");
+const NIV_GROEPEN=[["3-4",["3","4"]],["5",["5","5+"]],["6a",["6a","6a+"]],["6b",["6b","6b+"]],["6c",["6c","6c+"]],["7a",["7a","7a+"]],["7b",["7b","7b+"]],["7c",["7c","7c+"]]];
+const nivGroep=v=>{v=String(v??"").toLowerCase(); if(v==="start") return "start"; const g=NIV_GROEPEN.find(([,leden])=>leden.includes(v)); return g?g[0]:"";};
 let T, NIVEAUS, FREQ, LEEFTIJD, FIT, GRADE, HALOPT, HAL, LENGTES, TERUG;
 function zetTaal(t){
   taal=t; T=TEKST[t]; document.documentElement.lang=t;
   const lijst=(o,k)=>Object.entries(o).map(([w,l])=>k?[w,l,KLEUR[k][w]]:[w,l]);
-  NIVEAUS=[["start",T.nivStart],...["2","3","4","5","6","7","8","9","10"].map(n=>[n,T.niv(n)])]; // gradaties van de hal: 2 t/m 10
+  // Fontainebleau-niveaus, in het dashboard per twee samengenomen zodat er per regel genoeg reacties zijn
+  NIVEAUS=[["start",T.nivStart],...NIV_GROEPEN.map(([k,leden],i)=>[k,i===NIV_GROEPEN.length-1?T.nivTop:leden[0].toUpperCase()+" – "+leden[leden.length-1].toUpperCase()])];
    FREQ=lijst(T.freq); LEEFTIJD=lijst(T.leeftijd);
   FIT=lijst(T.fit,"fit"); GRADE=lijst(T.grade,"grade"); HALOPT=lijst(T.halopt,"halopt"); HAL=lijst(T.hal);
   LENGTES=lijst(T.lengte); TERUG=lijst(T.terug,"terug");
@@ -269,7 +272,7 @@ async function laad(){
     const r = await fetch(ENDPOINT+"?key="+encodeURIComponent(key));
     const j = await r.json();
     if(j.fout){ document.getElementById("app").innerHTML=`<div class="waarschuwing" role="alert"><b>${T.geenToegang}</b></div>`; return; }
-    j.antwoorden.forEach(r=>{r.niveau=String(r.niveau??"")}); // Sheets geeft een niveau soms als getal terug
+    j.antwoorden.forEach(r=>{r.niveau=String(r.niveau??""); r.nivg=nivGroep(r.niveau);}); // groep voor het dashboard
     DATA=j; render();
   }catch(e){ document.getElementById("app").innerHTML=`<div class="waarschuwing" role="alert"><b>${T.laadFout}</b></div>`; }
 }
@@ -306,12 +309,12 @@ function verdeling(A,veld,opties){const B=A.filter(r=>opties.some(o=>o[0]===r[ve
 /* ---------- signalen: vertaalt data naar iets wat je kunt doen ---------- */
 function signalen(A){
   const s=[];
-  NIVEAUS.forEach(([k,l])=>{
-    const g=A.filter(r=>r.niveau===k&&r.fit), n=g.length; if(n<MIN_N) return;
+  NIVEAUS.filter(([k])=>k!=="start").forEach(([k,l])=>{ // wie zijn niveau niet weet, telt niet mee voor actiepunten per niveau
+    const g=A.filter(r=>r.nivg===k&&r.fit), n=g.length; if(n<MIN_N) return;
     const w=pct(g.filter(r=>r.fit==="weinig").length,n), v=pct(g.filter(r=>r.fit==="veel").length,n);
     if(w>=40) s.push({t:"actie",kop:T.sig.teWeinig(l),tekst:T.sig.teWeinigT(w,l),n});
     else if(v>=55) s.push({t:"info",kop:T.sig.ruim(l),tekst:T.sig.ruimT(v,l),n});
-    const gg=A.filter(r=>r.niveau===k&&["soft","klopt","zwaar","wisselend"].includes(r.grade)), gn=gg.length;
+    const gg=A.filter(r=>r.nivg===k&&["soft","klopt","zwaar","wisselend"].includes(r.grade)), gn=gg.length;
     if(gn>=MIN_N){
       const so=pct(gg.filter(r=>r.grade==="soft").length,gn), zw=pct(gg.filter(r=>r.grade==="zwaar").length,gn);
       if(so>=40) s.push({t:"actie",kop:T.sig.soft(l),tekst:T.sig.softT(so,l),n:gn});
@@ -437,14 +440,14 @@ function render(){
 
   h+=`<section><h2>${T.fitKop}</h2><p class="uitleg">${T.fitUitleg}</p>
     <div style="font-weight:800;margin:4px 0">${T.perNiveau}</div>
-    ${NIVEAUS.map(([k,l])=>stackRij(l,verdeling(A.filter(r=>r.niveau===k),"fit",FIT))).join("")}
+    ${NIVEAUS.map(([k,l])=>stackRij(l,verdeling(A.filter(r=>r.nivg===k),"fit",FIT))).join("")}
     <div style="font-weight:800;margin:16px 0 4px">${T.perLengte}</div>
     ${LENGTES.map(([k,l])=>stackRij(l,verdeling(A.filter(r=>r.lengte===k),"fit",FIT))).join("")}${legenda(FIT)}</section>`;
 
   h+=`<section><h2>${T.terugKop}</h2><p class="uitleg">${T.terugUitleg}</p>
     ${ws.map(w=>stackRij(naamWand(w),verdeling(DATA.antwoorden.filter(r=>r.wand===w&&r.set===gekozenSet(w)),"terug",TERUG))).join("")}${legenda(TERUG)}</section>`;
   h+=`<section><h2>${T.gradeKop}</h2><p class="uitleg">${T.gradeUitleg}</p>
-    ${NIVEAUS.map(([k,l])=>stackRij(l,verdeling(A.filter(r=>r.niveau===k),"grade",GRADE))).join("")}${legenda(GRADE)}</section>`;
+    ${NIVEAUS.map(([k,l])=>stackRij(l,verdeling(A.filter(r=>r.nivg===k),"grade",GRADE))).join("")}${legenda(GRADE)}</section>`;
 
   const S1=A.filter(r=>r.stijl&&r.stijl.length), M1=A.filter(r=>r.mist&&r.mist.length);
   h+=`<section><h2>${T.stijlKop}</h2><p class="uitleg">${T.stijlUitleg}</p>
@@ -455,12 +458,12 @@ function render(){
   h+=`<section><h2>${T.halKop}</h2><p class="uitleg">${T.halUitleg}</p>
     ${HAL.map(([k,l])=>stackRij(l,verdeling(A,k,HALOPT))).join("")}${legenda(HALOPT)}
     <h2 style="margin-top:26px">${T.wieKop}</h2><p class="uitleg">${T.wieUitleg}</p>
-    ${[["niveau",NIVEAUS,T.kNiveau],["freq",FREQ,T.kFreq],["lengte",LENGTES,T.kLengte],["leeftijd",LEEFTIJD,T.kLeeftijd]].map(([veld,op,kop])=>{const B=A.filter(r=>r[veld]);return `<div style="font-weight:800;margin:14px 0 4px">${kop}</div>`+op.map(([k,l])=>{const x=B.filter(r=>r[veld]===k).length;return `<div class="rij"><span>${l}</span><div class="enkel"><span style="width:${pct(x,B.length)}%;background:#000"></span></div><span class="n">${x}</span></div>`}).join("")}).join('')}
+    ${[["nivg",NIVEAUS,T.kNiveau],["freq",FREQ,T.kFreq],["lengte",LENGTES,T.kLengte],["leeftijd",LEEFTIJD,T.kLeeftijd]].map(([veld,op,kop])=>{const B=A.filter(r=>r[veld]);return `<div style="font-weight:800;margin:14px 0 4px">${kop}</div>`+op.map(([k,l])=>{const x=B.filter(r=>r[veld]===k).length;return `<div class="rij"><span>${l}</span><div class="enkel"><span style="width:${pct(x,B.length)}%;background:#000"></span></div><span class="n">${x}</span></div>`}).join("")}).join('')}
   </section>`;
 
   const TIPS=A.filter(r=>r.tip&&String(r.tip).trim()).sort((a,b)=>a.ontvangen<b.ontvangen?1:-1);
   h+=`<section class="vol"><h2>${T.tipsKop}</h2><p class="uitleg">${T.tipsUitleg(TIPS.length)}</p>
-    <div class="tips">${TIPS.length?TIPS.slice(0,60).map(r=>`<div class="tip">${esc(r.tip)}<div class="tags"><span>${naamWand(r.wand)}</span><span>${esc(lab(NIVEAUS,r.niveau))}</span>${r.happy?`<span>${r.happy}/5</span>`:""}<span>${new Date(r.ontvangen).toLocaleDateString(T.locale,{day:"numeric",month:"short"})}</span></div></div>`).join(""):`<p class="leeg">${T.geenTips}</p>`}</div></section>`;
+    <div class="tips">${TIPS.length?TIPS.slice(0,60).map(r=>`<div class="tip">${esc(r.tip)}<div class="tags"><span>${naamWand(r.wand)}</span><span>${esc(lab(NIVEAUS,r.nivg))}</span>${r.happy?`<span>${r.happy}/5</span>`:""}<span>${new Date(r.ontvangen).toLocaleDateString(T.locale,{day:"numeric",month:"short"})}</span></div></div>`).join(""):`<p class="leeg">${T.geenTips}</p>`}</div></section>`;
   h+=`</div>`;
 
   const app=document.getElementById("app"); app.innerHTML=h;
@@ -486,16 +489,16 @@ function voorbeeld(){
       sets.push({wand:w,setdatum:d.toISOString(),naam});
       const basis=[3.2,3.8,3.5,4.1,3.0,3.9][wi%6]+(k===aantal-1?(wi===2?-.7:.3):0);
       for(let j=0;j<8+Math.floor(rnd()*14);j++){
-        const niv=kies(["start","3","4","4","5","5","5","6","6","6","7","7","8","9","10"]);
-        const sterk=niv==="9"||niv==="10"; const lg=kies(["-160","160-170","160-170","170-180","170-180","180-190","190+"]);
+        const niv=kies(["start","4","5","5+","6a","6a","6a+","6b","6b","6b+","6c","6c+","7a","7a+","7b","7c"]);
+        const sterk=["7a+","7b","7c"].includes(niv); const lg=kies(["-160","160-170","160-170","170-180","170-180","180-190","190+"]);
         antwoorden.push({ontvangen:new Date(Math.min(+d+rnd()*25*864e5,nu-rnd()*36e5)).toISOString(),wand:w,set:naam,setdatum:d.toISOString().slice(0,10),
           happy:Math.max(1,Math.min(5,Math.round(basis+(rnd()-.5)*2.2))),
           fit:sterk?kies(["weinig","weinig","goed"]):kies(["goed","goed","goed","veel","weinig"]),
-          grade:niv==="start"?"geenidee":kies(niv==="6"?["zwaar","klopt","klopt","zwaar"]:["klopt","klopt","soft","wisselend"]),
+          grade:niv==="start"?"geenidee":kies(niv==="6b"||niv==="6b+"?["zwaar","klopt","klopt","zwaar"]:["klopt","klopt","soft","wisselend"]),
           stijl:STIJLEN.filter(()=>rnd()<.28), mist:rnd()<.8?STIJLEN.filter((s)=>rnd()<(s==="Slab en balans"||s==="Comp style"?.38:.1)):["niks"],
           hal_grips:rnd()<.6?kies(["top","oke","beter","beter"]):"",hal_sfeer:rnd()<.6?kies(["top","top","oke"]):"",
-          tip:rnd()<.25?kies(["Meer slabs graag, de overhang is allemaal kracht.","Die gele op de compwand was de beste route van het jaar.","Te weinig op niveau 6, veel 5 en dan meteen zwaar.","Grips op de hoek zijn echt vies, glijden weg.","Leuk voor beginners, mijn kind toppte haar eerste!","Meer coordinatie-bewegingen, mag wat gekker.","Start van de blauwe is onduidelijk."]):"",
-          freq:kies(["eerste","soms","soms","week","week","vaste"]),niveau:niv,leeftijd:kies(["-12","12-17","18-24","25-34","25-34","35-49","50+"]),
+          tip:rnd()<.25?kies(["Meer slabs graag, de overhang is allemaal kracht.","Die gele op de compwand was de beste route van het jaar.","Te weinig rond 6B, veel 5+ en dan meteen zwaar.","Grips op de hoek zijn echt vies, glijden weg.","Leuk voor beginners, mijn kind toppte haar eerste!","Meer coordinatie-bewegingen, mag wat gekker.","Start van de blauwe is onduidelijk."]):"",
+          freq:kies(["eerste","soms","soms","week","week","vaste"]),niveau:niv,nivg:nivGroep(niv),leeftijd:kies(["-12","12-17","18-24","25-34","25-34","35-49","50+"]),
           lengte:lg, terug:kies(["ja","ja","misschien","nee","nee","onbekend"])});
         // kleinere klimmers vinden vaker te weinig
         const lt=antwoorden[antwoorden.length-1]; if(["-160","160-170"].includes(lt.lengte)&&rnd()<.35) lt.fit="weinig";
@@ -504,9 +507,9 @@ function voorbeeld(){
   });
   const wk=n=>new Date(nu+n*7*864e5).toISOString();
   const trainingen=[
-    {van:wk(-2),tot:wk(2),groep:"regulier",thema:"Slab en balans",notitie:"Voetenwerk en gewicht verplaatsen. Liefst een paar slabs op niveau 4 en 5."},
+    {van:wk(-2),tot:wk(2),groep:"regulier",thema:"Slab en balans",notitie:"Voetenwerk en gewicht verplaatsen. Liefst een paar slabs van 4 tot 5+."},
     {van:wk(2),tot:wk(6),groep:"regulier",thema:"Dynamisch",notitie:"Eerste sprongen en dead points, laag bij de grond."},
-    {van:wk(-1),tot:wk(3),groep:"selectie",thema:"Comp style",notitie:"Coördinatie en run-and-jumps, niveau 7 en hoger."},
+    {van:wk(-1),tot:wk(3),groep:"selectie",thema:"Comp style",notitie:"Coördinatie en run-and-jumps, 7A en hoger."},
     {van:wk(3),tot:wk(7),groep:"selectie",thema:"Crimpy en power",notitie:"Overhang, kleine grepen."}];
   return {antwoorden,sets,trainingen,bijgewerkt:new Date().toISOString()};
 }
