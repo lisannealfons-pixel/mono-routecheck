@@ -8,3 +8,4 @@ assets-bron/
 .DS_Store
 CLAUDE.md
 prototype/
+deploy-vercel.sh
