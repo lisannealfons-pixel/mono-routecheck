@@ -98,6 +98,12 @@ section p.uitleg{margin:0 0 14px;color:#444;font-size:14px;max-width:70ch}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--zwart);color:var(--wit);padding:10px 16px;border-radius:99px;font-weight:600;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.aan{opacity:1}
 button:focus-visible,select:focus-visible{outline:3px solid var(--blauw);outline-offset:2px}
+.inlog{max-width:380px;margin:12vh auto 0;display:flex;flex-direction:column;gap:12px}
+.inlog h2{font-weight:900;font-size:28px;margin:0}
+.inlog input{font:inherit;font-size:16px;padding:12px 14px;border:2px solid var(--zwart);border-radius:12px;background:var(--wit);color:var(--zwart)}
+.inlog input:focus-visible{outline:3px solid var(--blauw);outline-offset:2px}
+.inlog .knop{font-size:16px;padding:12px;background:var(--zwart);color:var(--wit)}
+.inlog .fout{color:var(--rood);font-weight:700;margin:0}
 @media (max-width:820px){.train{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.kern{grid-template-columns:1fr 1fr}.kern div:nth-child(2){border-right:0}.kern div:nth-child(-n+2){border-bottom:2px solid var(--zwart)}.rij{grid-template-columns:100px 1fr 36px}.wandrij{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -119,7 +125,8 @@ const TAAL_KEY="mono_routecheck_dash_taal_v1";
 const TEKST={
   nl:{
     locale:"nl-NL", laden:"Laden...", gekopieerd:"Gekopieerd", onbekend:"Onbekend",
-    geenToegang:"Geen toegang. Open het dashboard via de link met sleutel (#key=...). Vraag hem bij Lisanne.",
+    geenToegang:"Geen toegang. Vraag het wachtwoord bij Lisanne.",
+    wwKop:"Dashboard routesetting", wwUitleg:"Vul het wachtwoord van het team in. Dit apparaat onthoudt het daarna.", wwLabel:"Wachtwoord", wwKnop:"Open dashboard", wwFout:"Dat wachtwoord klopt niet.",
     laadFout:"Data laden lukte niet. Check de ENDPOINT in dashboard.html en of de Apps Script web-app voor iedereen openstaat.",
     nivStart:"Weet ik niet", nivTop:"7C en hoger",
     freq:{eerste:"Eerste keer",soms:"Soms",week:"Elke week",vaste:"2+ per week"},
@@ -180,7 +187,8 @@ const TEKST={
   },
   en:{
     locale:"en-GB", laden:"Loading...", gekopieerd:"Copied", onbekend:"Unknown",
-    geenToegang:"No access. Open the dashboard via the link with the key (#key=...). Ask Lisanne for it.",
+    geenToegang:"No access. Ask Lisanne for the password.",
+    wwKop:"Routesetting dashboard", wwUitleg:"Enter the team password. This device remembers it afterwards.", wwLabel:"Password", wwKnop:"Open dashboard", wwFout:"That password is not correct.",
     laadFout:"Could not load the data. Check the ENDPOINT in dashboard.html and whether the Apps Script web app is open to everyone.",
     nivStart:"Not sure", nivTop:"7C and up",
     freq:{eerste:"First time",soms:"Sometimes",week:"Every week",vaste:"2+ a week"},
@@ -264,14 +272,34 @@ zetTaal(taal);
 let DATA=null, demo=false, filt={wand:"alle",periode:"nu"};
 // Welke set per wand: 0 = huidige, 1 = vorige. Bij 30 dagen of alles vergelijken we de huidige set.
 const setOffset=()=>filt.periode==="vorige"?1:0;
-const key = hashP.get("key")||"";
+// Wachtwoord: wordt door het Apps Script gecontroleerd en daarna op dit apparaat onthouden.
+const WW_KEY="mono_routecheck_dash_ww_v1";
+let wwMem="";
+function leesWw(){try{return localStorage.getItem(WW_KEY)||wwMem}catch(e){return wwMem}}
+function schrijfWw(w){wwMem=w;try{localStorage.setItem(WW_KEY,w)}catch(e){}}
+function wisWw(){wwMem="";try{localStorage.removeItem(WW_KEY)}catch(e){}}
+// Oude links met #key= werken niet meer; haal de sleutel uit de adresbalk
+if(hashP.has("key")){hashP.delete("key");history.replaceState(null,"",location.pathname+location.search+(hashP.toString()?"#"+hashP:""));}
+function toonInlog(fout){
+  document.getElementById("app").innerHTML=`<form class="inlog" id="inlog">
+    <h2>${T.wwKop}</h2><p style="margin:0">${T.wwUitleg}</p>
+    <label for="ww" class="meta">${T.wwLabel}</label>
+    <input id="ww" type="password" autocomplete="current-password" required>
+    ${fout?`<p class="fout" role="alert">${T.wwFout}</p>`:""}
+    <button class="knop" type="submit">${T.wwKnop}</button></form>`;
+  const f=document.getElementById("inlog"), i=document.getElementById("ww");
+  i.focus();
+  f.addEventListener("submit",ev=>{ev.preventDefault(); if(!i.value) return; schrijfWw(i.value); laad();});
+}
 
 async function laad(){
   if(!ENDPOINT){ DATA=voorbeeld(); demo=true; return render(); }
   try{
-    const r = await fetch(ENDPOINT+"?key="+encodeURIComponent(key));
+    const ww=leesWw();
+    if(!ww) return toonInlog(false);
+    const r = await fetch(ENDPOINT+"?key="+encodeURIComponent(ww));
     const j = await r.json();
-    if(j.fout){ document.getElementById("app").innerHTML=`<div class="waarschuwing" role="alert"><b>${T.geenToegang}</b></div>`; return; }
+    if(j.fout){ wisWw(); return toonInlog(true); }
     j.antwoorden.forEach(r=>{r.niveau=String(r.niveau??""); r.nivg=nivGroep(r.niveau);}); // groep voor het dashboard
     DATA=j; render();
   }catch(e){ document.getElementById("app").innerHTML=`<div class="waarschuwing" role="alert"><b>${T.laadFout}</b></div>`; }
