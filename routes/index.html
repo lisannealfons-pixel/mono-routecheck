@@ -217,8 +217,8 @@ const WEETJES = {
 
 // Greepkleuren, zoals op de wand
 const KLEUREN = ["#FFD23F","#2F5BFF","#E0442B","#1E9E5A","#FF8A1F","#8E44D9","#FF6FB5","#111111"];
-// Niveau in de Fontainebleau-schaal. Opgeslagen in kleine letters ("6a+"), getoond als "6A+".
-const NIVEAUS = ["3","4","5","5+","6a","6a+","6b","6b+","6c","6c+","7a","7a+","7b","7b+","7c","7c+"];
+// Niveau op de schaal van de hal: 1 (makkelijk) t/m 10 (heel moeilijk).
+const NIVEAUS = ["1","2","3","4","5","6","7","8","9","10"];
 const PROFIEL_KEY = "mono_routecheck_profiel_v1";
 const GEDAAN_KEY = "mono_routecheck_gedaan_v1";
 
@@ -235,7 +235,7 @@ const TEKST = {
     wand:"Welke wand?", wandSub:"Kies de wand waar je net op klom.",
     over:"Tot slot: over jou",
     kort:{freq:"Hoe vaak klim je hier?",niveau:"Wat klim je meestal?",lengte:"Hoe lang ben je?",leeftijd:"Hoe oud ben je?"}, schuif:"Schuif om te kiezen", nog:n=>`Nog ${n} te gaan`, korter:"of korter", langer:"of langer",
-    eind:{niveau:["weet ik niet","7C+"],lengte:["kort","lang"],leeftijd:["jong","50+"]}, jaar:"jaar",
+    eind:{niveau:["1 makkelijk","10 heel moeilijk"],lengte:["kort","lang"],leeftijd:["jong","50+"]}, jaar:"jaar",
     prototype:"<b>Prototype.</b> Dit scherm zien klimmers alleen via de algemene QR-code. Elke wand krijgt een eigen QR-bordje. Wie die scant, slaat deze stap over: de juiste wand staat al ingevuld en het antwoord wordt onder die wand opgeslagen.", prototypeKnop:"Probeer het zoals na het scannen van Bosigran",
     happy:"Hoe vond je deze set?", happyAria:"Score van 1 tot 5",
     hal:"En de hal?",
@@ -252,14 +252,14 @@ const TEKST = {
       freq:{titel:"Hoe vaak klim je bij MONO?", sub:"Dit vragen we maar één keer. Je telefoon onthoudt het.",
         opties:{eerste:["1e keer"],soms:["Soms"],week:["Wekelijks"],vaste:["2+/wk"]}},
       niveau:{titel:"Wat klim je meestal?", sub:"Wat je op een goede dag topt.",
-        start:"Weet ik nog niet", n:n=>n==="7c+"?"7C+ of hoger":n.toUpperCase()},
+        n:n=>n},
       lengte:{titel:"Hoe lang ben je?", sub:"Een verre move is voor iedereen anders. Zo zien de setters of een route alleen voor lange mensen werkt.",
         opties:{"-160":["Korter dan 1,60"],"160-170":["1,60 tot 1,70"],"170-180":["1,70 tot 1,80"],"180-190":["1,80 tot 1,90"],"190+":["1,90 of langer"]}},
       fit:{titel:"Was er genoeg voor jouw niveau?", sub:"",
         opties:{weinig:["Te weinig"],goed:["Precies goed"],veel:["Meer dan genoeg"]}},
       terug:{titel:"Kom je terug voor een project?", sub:"",
         opties:{ja:["Ja, ik heb een project"],misschien:["Misschien"],nee:["Nee, geen project"],onbekend:["Een project? Wat is dat?"]}},
-      grade:{titel:"Klopten de grades?", sub:"Voelde een 6A als een 6A?",
+      grade:{titel:"Klopten de grades?", sub:"",
         opties:{soft:["Te makkelijk"],klopt:["Klopt"],zwaar:["Te zwaar"],wisselend:["Heel wisselend"],geenidee:["Geen idee"]}},
       stijl:{titel:"Welke stijlen kwam je tegen?", sub:"Je kan meerdere stijlen selecteren."},
       mist:{titel:"Wat zou je meer willen zien?", sub:"", niks:"Niks, het zat er allemaal in"},
@@ -274,7 +274,7 @@ const TEKST = {
     wand:"Which wall?", wandSub:"Pick the wall you just climbed.",
     over:"Finally: about you",
     kort:{freq:"How often do you climb here?",niveau:"What do you usually climb?",lengte:"How tall are you?",leeftijd:"How old are you?"}, schuif:"Slide to choose", nog:n=>`${n} to go`, korter:"or shorter", langer:"or taller",
-    eind:{niveau:["not sure","7C+"],lengte:["short","tall"],leeftijd:["young","50+"]}, jaar:"years",
+    eind:{niveau:["1 easy","10 very hard"],lengte:["short","tall"],leeftijd:["young","50+"]}, jaar:"years",
     prototype:"<b>Prototype.</b> Climbers only see this screen via the general QR code. Every wall gets its own QR sign. Scanning it skips this step: the right wall is already filled in and the answer is saved under that wall.", prototypeKnop:"Try it as if you scanned Bosigran",
     happy:"How did you like this set?", happyAria:"Score from 1 to 5",
     hal:"And the gym?",
@@ -291,14 +291,14 @@ const TEKST = {
       freq:{titel:"How often do you climb at MONO?", sub:"We only ask this once. Your phone remembers.",
         opties:{eerste:["1st time"],soms:["Sometimes"],week:["Weekly"],vaste:["2+/wk"]}},
       niveau:{titel:"What do you usually climb?", sub:"What you top on a good day.",
-        start:"Not sure yet", n:n=>n==="7c+"?"7C+ or harder":n.toUpperCase()},
+        n:n=>n},
       lengte:{titel:"How tall are you?", sub:"A long move is different for everyone. This shows the setters if a route only works for tall people.",
         opties:{"-160":["Under 1.60 m"],"160-170":["1.60 to 1.70 m"],"170-180":["1.70 to 1.80 m"],"180-190":["1.80 to 1.90 m"],"190+":["1.90 m or taller"]}},
       fit:{titel:"Was there enough at your level?", sub:"",
         opties:{weinig:["Too little"],goed:["Just right"],veel:["More than enough"]}},
       terug:{titel:"Coming back for a project?", sub:"",
         opties:{ja:["Yes, I've got a project"],misschien:["Maybe"],nee:["No, no project"],onbekend:["A project? What's that?"]}},
-      grade:{titel:"Were the grades right?", sub:"Did a 6A feel like a 6A?",
+      grade:{titel:"Were the grades right?", sub:"",
         opties:{soft:["Too easy"],klopt:["About right"],zwaar:["Too hard"],wisselend:["All over the place"],geenidee:["No idea"]}},
       stijl:{titel:"Which styles did you come across?", sub:"You can select multiple styles."},
       mist:{titel:"What would you like to see more of?", sub:"", niks:"Nothing, it had it all"},
@@ -315,7 +315,7 @@ function zetTaal(t){
   taal = t; T = TEKST[t]; document.documentElement.lang = t;
   const v = T.vragen, o = q => Object.entries(v[q].opties).map(([w,[t1,t2]])=>t2?[w,t1,t2]:[w,t1]);
   VRAGEN = {
-    freq:{...v.freq,opties:o("freq")}, niveau:{titel:v.niveau.titel, sub:v.niveau.sub, opties:[["start",v.niveau.start],...NIVEAUS.map(n=>[n,v.niveau.n(n)])]}, lengte:{...v.lengte,opties:o("lengte")},
+    freq:{...v.freq,opties:o("freq")}, niveau:{titel:v.niveau.titel, sub:v.niveau.sub, opties:[...NIVEAUS.map(n=>[n,v.niveau.n(n)])]}, lengte:{...v.lengte,opties:o("lengte")},
     terug:{...v.terug,opties:o("terug")},
     fit:{...v.fit,opties:o("fit")}, grade:{...v.grade,opties:o("grade")},
     stijl:{titel:v.stijl.titel, sub:v.stijl.sub, multi:true, opties:STIJLEN.map(s=>[s,T.stijl(s)])},
