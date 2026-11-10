@@ -323,15 +323,30 @@ function setsVan(w){ // chronologisch, uit Sets-tab plus wat in antwoorden voork
   DATA.antwoorden.filter(r=>r.wand===w&&r.set&&!m.has(r.set)).forEach(r=>m.set(r.set,r.setdatum||"0000"));
   return [...m.entries()].sort((a,b)=>a[1]<b[1]?-1:1).map(e=>e[0]);
 }
+const dagVan=v=>String(v??"").slice(0,10);
+// Alle setdatums tot en met vandaag, nieuwste eerst. Huidige set = de nieuwste maandag, vorige set = die daarvoor.
+function setDatums(){const morgen=new Date(Date.now()+864e5).toISOString().slice(0,10);
+  return [...new Set(DATA.sets.filter(s=>WANDEN[s.wand]&&dagVan(s.setdatum)<morgen&&!isNaN(new Date(s.setdatum))).map(s=>dagVan(s.setdatum)))].sort().reverse()}
+// Bij alle wanden + huidige/vorige set: de setdatum waar de pagina over gaat
+function gekozenDatum(){return filt.wand==="alle"&&["nu","vorige"].includes(filt.periode)?(setDatums()[setOffset()]||null):null}
+// Welke wanden de pagina laat zien
+function wandenInBeeld(){
+  if(filt.wand!=="alle") return [filt.wand];
+  if(!["nu","vorige"].includes(filt.periode)) return Object.keys(WANDEN);
+  const d=gekozenDatum(); return d?Object.keys(WANDEN).filter(w=>DATA.sets.some(s=>s.wand===w&&dagVan(s.setdatum)===d)):[];
+}
+function vorigeVan(w,naam){const S=setsVan(w),i=S.indexOf(naam);return i>0?S[i-1]:null}
 function gefilterd(){
   let A=DATA.antwoorden;
   if(filt.wand!=="alle") A=A.filter(r=>r.wand===filt.wand);
-  if(["nu","vorige"].includes(filt.periode)){const o=setOffset();A=A.filter(r=>{const s=setsVan(r.wand);return s.length>o&&r.set===s[s.length-1-o]})}
+  if(["nu","vorige"].includes(filt.periode)){const W=wandenInBeeld();A=A.filter(r=>W.includes(r.wand)&&r.set&&r.set===gekozenSet(r.wand))}
   if(filt.periode==="30") {const g=Date.now()-30*864e5;A=A.filter(r=>new Date(r.ontvangen)>=g)}
   return A;
 }
 // De set die bij de filter hoort (huidige of vorige); bij 30 dagen of alles de huidige
-function gekozenSet(w){const S=setsVan(w),o=setOffset();return S.length>o?S[S.length-1-o]:null}
+function gekozenSet(w){const d=gekozenDatum();
+  if(d){const s=DATA.sets.find(x=>x.wand===w&&dagVan(x.setdatum)===d);return s?(s.naam||(w+" "+d)):null}
+  const S=setsVan(w),o=setOffset();return S.length>o?S[S.length-1-o]:null}
 function setDatum(w,naam){const s=DATA.sets.find(x=>x.wand===w&&(x.naam||(w+" "+String(x.setdatum).slice(0,10)))===naam);
   if(s) return new Date(s.setdatum); const r=DATA.antwoorden.find(x=>x.wand===w&&x.set===naam&&x.setdatum); return r?new Date(r.setdatum):null}
 function verdeling(A,veld,opties){const B=A.filter(r=>opties.some(o=>o[0]===r[veld]));return {n:B.length,delen:opties.map(o=>({k:o[0],l:o[1],c:o[2],x:B.filter(r=>r[veld]===o[0]).length}))}}
@@ -351,13 +366,13 @@ function signalen(A){
       if(zw>=40) s.push({t:"actie",kop:T.sig.zwaar(l),tekst:T.sig.zwaarT(zw,l),n:gn});
     }
   });
-  const wanden = filt.wand==="alle"?Object.keys(WANDEN):[filt.wand];
+  const wanden = wandenInBeeld();
   wanden.forEach(w=>{
-    const o=setOffset(), S=setsVan(w); if(S.length<1+o) return;
-    const nu=DATA.antwoorden.filter(r=>r.wand===w&&r.set===S[S.length-1-o]&&r.happy).map(r=>+r.happy);
+    const sn=gekozenSet(w); if(!sn) return;
+    const nu=DATA.antwoorden.filter(r=>r.wand===w&&r.set===sn&&r.happy).map(r=>+r.happy);
     if(nu.length>=MIN_N && gem(nu)<3) s.push({t:"actie",kop:T.sig.laag(naamWand(w)),tekst:T.sig.laagT(f1(gem(nu))),n:nu.length});
-    if(S.length<2+o) return;
-    const oud=DATA.antwoorden.filter(r=>r.wand===w&&r.set===S[S.length-2-o]&&r.happy).map(r=>+r.happy);
+    const sv=vorigeVan(w,sn); if(!sv) return;
+    const oud=DATA.antwoorden.filter(r=>r.wand===w&&r.set===sv&&r.happy).map(r=>+r.happy);
     if(nu.length<MIN_N||oud.length<MIN_N) return;
     const d=gem(nu)-gem(oud);
     if(d<=-.4) s.push({t:"actie",kop:T.sig.minder(naamWand(w)),tekst:T.sig.minderT(f1(gem(oud)),f1(gem(nu))),n:nu.length});
@@ -410,10 +425,10 @@ function render(){
   const sig=signalen(A);
 
   // delta happiness huidige vs vorige set (gemiddeld over wanden in filter)
-  const ws = filt.wand==="alle"?Object.keys(WANDEN):[filt.wand]; const ds=[];
-  ws.forEach(w=>{const o=setOffset(),S=setsVan(w);if(S.length<2+o)return;
-    const nu=DATA.antwoorden.filter(r=>r.wand===w&&r.set===S[S.length-1-o]&&r.happy).map(r=>+r.happy);
-    const oud=DATA.antwoorden.filter(r=>r.wand===w&&r.set===S[S.length-2-o]&&r.happy).map(r=>+r.happy);
+  const ws = wandenInBeeld(); const ds=[];
+  ws.forEach(w=>{const sn=gekozenSet(w),sv=sn&&vorigeVan(w,sn);if(!sv)return;
+    const nu=DATA.antwoorden.filter(r=>r.wand===w&&r.set===sn&&r.happy).map(r=>+r.happy);
+    const oud=DATA.antwoorden.filter(r=>r.wand===w&&r.set===sv&&r.happy).map(r=>+r.happy);
     if(nu.length>=MIN_N&&oud.length>=MIN_N) ds.push(gem(nu)-gem(oud));});
   let delta=gem(ds); if(delta!=null&&Math.abs(delta)<0.05) delta=0; // geen "-0,0"
 
@@ -424,14 +439,11 @@ function render(){
   /* set loopt t/m de zondag van de week waarin hij gehangen is */
   const zondagNa=d=>{const z=new Date(d);z.setDate(z.getDate()+((7-z.getDay())%7));return z};
   let bereik=tijden.length?(dm(Math.min(...tijden))===dm(Math.max(...tijden))?dm(Math.min(...tijden)):dm(Math.min(...tijden))+" "+T.tm+" "+dm(Math.max(...tijden))):"";
-  // Huidige of vorige set: toon de setperiode (setdatum op maandag t/m de zondag voor de volgende set)
+  // Huidige of vorige set: een set loopt van de maandag van de setdatum t/m de zondag daarna
   if(["nu","vorige"].includes(filt.periode)){
     const dw=t=>new Date(t).toLocaleDateString(T.locale,{weekday:"short",day:"numeric",month:"short"});
-    const P=ws.map(w=>{const naam=gekozenSet(w);if(!naam)return null;const S=setsVan(w),st=setDatum(w,naam),vn=S[S.indexOf(naam)+1],nd=vn?setDatum(w,vn):null;
-      return st&&!isNaN(st)?{w,st:+st,p:dw(st)+" "+T.tm+" "+(nd&&!isNaN(nd)?dw(+nd-864e5):dw(zondagNa(st)))}:null}).filter(Boolean);
-    const groep=new Map(); P.sort((a,b)=>b.st-a.st).forEach(x=>{if(!groep.has(x.p))groep.set(x.p,[]);groep.get(x.p).push(naamWand(x.w))});
-    if(groep.size===1){const [[p,W]]=[...groep]; bereik=p; setWanden=`<div class="setwand">${filt.wand==="alle"?T.alleWanden:W.join(", ")}</div>`;}
-    else if(groep.size>1){bereik=T.perWand; setWanden=[...groep].map(([p,W])=>`<div class="setwand"><b>${p}</b>: ${W.join(", ")}</div>`).join("");}
+    const st=ws.map(w=>{const sn=gekozenSet(w);return sn?setDatum(w,sn):null}).find(d=>d&&!isNaN(d));
+    if(st){bereik=dw(st)+" "+T.tm+" "+dw(zondagNa(st)); setWanden=`<div class="setwand">${ws.filter(gekozenSet).map(naamWand).join(", ")}</div>`;}
     else bereik="";
   }
   let h=`<header><div><svg class="logo" viewBox="0 0 553.5 553.5" role="img" aria-label="MONO"><path d="M553.5 553.5V0L276.632 276.632L0 0V553.5Z" fill="currentColor"/></svg><h1>Routecheck</h1>
@@ -476,7 +488,7 @@ function render(){
     const bars=S.map((s,k)=>{const v=DATA.antwoorden.filter(r=>r.wand===w&&r.set===s&&r.happy).map(r=>+r.happy);const g=gem(v);
       const sd=setDatum(w,s), R=DATA.antwoorden.filter(r=>r.wand===w&&r.set===s&&r.happy);
       const w1=sd?gem(R.filter(r=>new Date(r.ontvangen)-sd<7*864e5).map(r=>+r.happy)):null, w2=sd?gem(R.filter(r=>new Date(r.ontvangen)-sd>=7*864e5).map(r=>+r.happy)):null;
-      return `<div class="setbar ${k===S.length-1-setOffset()?'nu':''} ${v.length<MIN_N?'laag':''}"><span class="v">${f1(g)}</span><div class="kolom" style="height:${g?g*18:4}px"></div><span class="l">${esc(s)}<br>n=${v.length}</span>${sd?`<span class="wk">${T.wk1} ${f1(w1)}<br>${T.daarna} ${f1(w2)}</span>`:""}</div>`}).join("");
+      return `<div class="setbar ${s===gekozenSet(w)?'nu':''} ${v.length<MIN_N?'laag':''}"><span class="v">${f1(g)}</span><div class="kolom" style="height:${g?g*18:4}px"></div><span class="l">${esc(s)}<br>n=${v.length}</span>${sd?`<span class="wk">${T.wk1} ${f1(w1)}<br>${T.daarna} ${f1(w2)}</span>`:""}</div>`}).join("");
     h+=`<div class="wandrij"><span class="naam">${naamWand(w)}</span><div class="sets">${bars||`<span class="leeg">${T.geenSets}</span>`}</div></div>`;
   });
   h+=`</section>`;
@@ -529,12 +541,12 @@ function voorbeeld(){
     const aantal=3+(wi%2);
     for(let k=0;k<aantal;k++){
       const d=new Date(nu);d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7)-((aantal-1-k)*28+(wi%4)*7)); /* voorbeeld: sets wisselen op maandag */ const naam=`${WANDEN[w]} ${d.toLocaleDateString("nl-NL",{day:"numeric",month:"short"})}`;
-      sets.push({wand:w,setdatum:d.toISOString(),naam});
+      const sd=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); sets.push({wand:w,setdatum:sd,naam});
       const basis=[3.2,3.8,3.5,4.1,3.0,3.9][wi%6]+(k===aantal-1?(wi===2?-.7:.3):0);
       for(let j=0;j<8+Math.floor(rnd()*14);j++){
         const niv=kies(["2","3","4","4","5","5","5","6","6","6","7","7","8","9","10"]);
         const sterk=["7a+","7b","7c"].includes(niv); const lg=kies(["-160","160-170","160-170","170-180","170-180","180-190","190+"]);
-        antwoorden.push({ontvangen:new Date(Math.min(+d+rnd()*25*864e5,nu-rnd()*36e5)).toISOString(),wand:w,set:naam,setdatum:d.toISOString().slice(0,10),
+        antwoorden.push({ontvangen:new Date(Math.min(+d+rnd()*25*864e5,nu-rnd()*36e5)).toISOString(),wand:w,set:naam,setdatum:sd,
           happy:Math.max(1,Math.min(5,Math.round(basis+(rnd()-.5)*2.2))),
           fit:sterk?kies(["weinig","weinig","goed"]):kies(["goed","goed","goed","veel","weinig"]),
           grade:kies(niv==="6"?["zwaar","klopt","klopt","zwaar"]:["klopt","klopt","soft","wisselend"]),
