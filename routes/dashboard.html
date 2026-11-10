@@ -19,6 +19,8 @@ header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-be
 h1{font-weight:900;font-size:clamp(32px,5vw,52px);line-height:1;letter-spacing:-.02em;margin:0}
 .periode{font-weight:800;font-size:16px;margin-top:8px}
 .meta{color:var(--grijs-d);font-size:13px;margin-top:4px}
+.setwand{font-size:14px;margin-top:2px;max-width:70ch}
+.setwand b{font-weight:800}
 .filters{display:flex;gap:10px;flex-wrap:wrap}
 .filters label{display:flex;flex-direction:column;font-size:12px;font-weight:600;gap:4px}
 select{font:inherit;font-weight:600;border:2px solid var(--zwart);border-radius:10px;padding:8px 10px;background:var(--wit)}
@@ -169,7 +171,7 @@ const TEKST={
     tipsKop:"Tips voor de routesetters", tipsUitleg:n=>`${n} tips, nieuwste eerst.`, geenTips:"Nog geen tips.",
     perLengte:"Per lengte", perNiveau:"Per niveau",
     terugKop:"Kom je terug voor een project?", terugUitleg:"Per wand. Veel 'ja' betekent dat de set mensen terug laat komen.",
-    wk1:"week 1", daarna:"daarna",
+    wk1:"week 1", daarna:"daarna", nuTot:"nu", perWand:"verschilt per wand",
     foutKop:n=>n===1?"Er klopt iets niet in de Sheet":`Er kloppen ${n} dingen niet in de Sheet`,
     fout:{
       geenSet:(n,w)=>`${n} ${n===1?"antwoord hoort":"antwoorden horen"} bij geen enkele set (${w}). Zet de set in de tab Sets, met de juiste wand en setdatum.`,
@@ -231,7 +233,7 @@ const TEKST={
     tipsKop:"Tips for the routesetters", tipsUitleg:n=>`${n} tips, newest first.`, geenTips:"No tips yet.",
     perLengte:"By height", perNiveau:"By level",
     terugKop:"Coming back for a project?", terugUitleg:"Per wall. Lots of 'yes' means the set brings people back.",
-    wk1:"week 1", daarna:"after",
+    wk1:"week 1", daarna:"after", nuTot:"now", perWand:"differs per wall",
     foutKop:n=>n===1?"Something's off in the Sheet":`${n} things are off in the Sheet`,
     fout:{
       geenSet:(n,w)=>`${n} ${n===1?"answer doesn't":"answers don't"} belong to any set (${w}). Add the set to the Sets tab, with the right wall and set date.`,
@@ -418,9 +420,22 @@ function render(){
   // Van wanneer tot wanneer de feedback in deze selectie binnenkwam
   const tijden=A.map(r=>+new Date(r.ontvangen)).filter(t=>!isNaN(t));
   const dm=t=>new Date(t).toLocaleDateString(T.locale,{day:"numeric",month:"short"});
-  const bereik=tijden.length?(dm(Math.min(...tijden))===dm(Math.max(...tijden))?dm(Math.min(...tijden)):dm(Math.min(...tijden))+" "+T.tm+" "+dm(Math.max(...tijden))):"";
+  let setWanden="";
+  /* set loopt t/m de zondag van de week waarin hij gehangen is */
+  const zondagNa=d=>{const z=new Date(d);z.setDate(z.getDate()+((7-z.getDay())%7));return z};
+  let bereik=tijden.length?(dm(Math.min(...tijden))===dm(Math.max(...tijden))?dm(Math.min(...tijden)):dm(Math.min(...tijden))+" "+T.tm+" "+dm(Math.max(...tijden))):"";
+  // Huidige of vorige set: toon de setperiode (setdatum op maandag t/m de zondag voor de volgende set)
+  if(["nu","vorige"].includes(filt.periode)){
+    const dw=t=>new Date(t).toLocaleDateString(T.locale,{weekday:"short",day:"numeric",month:"short"});
+    const P=ws.map(w=>{const naam=gekozenSet(w);if(!naam)return null;const S=setsVan(w),st=setDatum(w,naam),vn=S[S.indexOf(naam)+1],nd=vn?setDatum(w,vn):null;
+      return st&&!isNaN(st)?{w,st:+st,p:dw(st)+" "+T.tm+" "+(nd&&!isNaN(nd)?dw(+nd-864e5):dw(zondagNa(st)))}:null}).filter(Boolean);
+    const groep=new Map(); P.sort((a,b)=>b.st-a.st).forEach(x=>{if(!groep.has(x.p))groep.set(x.p,[]);groep.get(x.p).push(naamWand(x.w))});
+    if(groep.size===1){const [[p,W]]=[...groep]; bereik=p; setWanden=`<div class="setwand">${filt.wand==="alle"?T.alleWanden:W.join(", ")}</div>`;}
+    else if(groep.size>1){bereik=T.perWand; setWanden=[...groep].map(([p,W])=>`<div class="setwand"><b>${p}</b>: ${W.join(", ")}</div>`).join("");}
+    else bereik="";
+  }
   let h=`<header><div><svg class="logo" viewBox="0 0 553.5 553.5" role="img" aria-label="MONO"><path d="M553.5 553.5V0L276.632 276.632L0 0V553.5Z" fill="currentColor"/></svg><h1>Routecheck</h1>
-    <div class="periode">${T.periodes[filt.periode]}${bereik?": "+bereik:""}</div>
+    <div class="periode">${T.periodes[filt.periode]}${bereik?": "+bereik:""}</div>${setWanden}
     <div class="meta">${demo?T.voorbeelddata:T.bijgewerkt+" "+new Date(DATA.bijgewerkt).toLocaleString(T.locale,{dateStyle:"medium",timeStyle:"short"})}</div></div>
     <div class="filters">
       <label>${T.fWand}<select id="fw"><option value="alle">${T.alleWanden}</option>${Object.entries(WANDEN).map(([k,v])=>`<option value="${k}" ${filt.wand===k?"selected":""}>${v}</option>`).join("")}</select></label>
@@ -513,7 +528,7 @@ function voorbeeld(){
   Object.keys(WANDEN).forEach((w,wi)=>{
     const aantal=3+(wi%2);
     for(let k=0;k<aantal;k++){
-      const d=new Date(nu-(aantal-k)*28*864e5+wi*3*864e5); const naam=`${WANDEN[w]} ${d.toLocaleDateString("nl-NL",{day:"numeric",month:"short"})}`;
+      const d=new Date(nu);d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7)-((aantal-1-k)*28+(wi%4)*7)); /* voorbeeld: sets wisselen op maandag */ const naam=`${WANDEN[w]} ${d.toLocaleDateString("nl-NL",{day:"numeric",month:"short"})}`;
       sets.push({wand:w,setdatum:d.toISOString(),naam});
       const basis=[3.2,3.8,3.5,4.1,3.0,3.9][wi%6]+(k===aantal-1?(wi===2?-.7:.3):0);
       for(let j=0;j<8+Math.floor(rnd()*14);j++){
