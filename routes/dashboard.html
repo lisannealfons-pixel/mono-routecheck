@@ -93,13 +93,24 @@ section p.uitleg{margin:0 0 14px;color:#444;font-size:14px;max-width:70ch}
 .srij:first-child{border-top:0}
 .srij .lab b{font-weight:800}
 .srij .lab small{display:block;color:var(--grijs-d);font-size:12px}
+.lees{border:2px solid var(--zwart);border-radius:16px;padding:16px 20px;margin-bottom:28px}
+.lees h2{font-size:18px}
+.lees p.uitleg{margin-bottom:8px}
+.lees ul{margin:0;padding-left:20px;font-size:14px;max-width:80ch}
+.lees li{margin:5px 0}
+.srij .balk{display:flex;flex-direction:column;gap:4px}
 .srij .bar{height:18px;border-radius:6px;background:var(--grijs);overflow:hidden}
+.srij .verd{display:flex;height:6px;border-radius:3px;overflow:hidden;background:var(--grijs)}
+.srij .verd span{display:block;height:100%}
+.srij .sc .d{font-weight:800;font-size:12px;margin-left:4px}
+.verdleg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:#333;margin:0 0 8px}
+.verdleg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
 .srij .bar span{display:block;height:100%;background:var(--grijs-m);border-radius:6px}
 .srij.nu .bar span{background:var(--geel);box-shadow:inset 0 0 0 2px var(--zwart)}
 .srij .sc{text-align:right;line-height:1.2}
 .srij .sc b{font-weight:900;font-size:17px}
 .srij .sc small{display:block;color:var(--grijs-d);font-size:11px}
-.srij.laag .bar,.srij.laag .sc b{opacity:.45}
+.srij.laag .balk,.srij.laag .sc b{opacity:.45}
 .setbar .wk{color:var(--zwart);font-size:11px;line-height:1.3;text-align:center;margin-top:3px}
 .train{display:grid;grid-template-columns:1fr 1fr;gap:8px 28px}
 .train h3{font-weight:800;font-size:15px;margin:0 0 4px}
@@ -121,7 +132,7 @@ button:focus-visible,select:focus-visible{outline:3px solid var(--blauw);outline
 .inlog input:focus-visible{outline:3px solid var(--blauw);outline-offset:2px}
 .inlog .knop{font-size:16px;padding:12px;background:var(--zwart);color:var(--wit)}
 .inlog .fout{color:var(--rood);font-weight:700;margin:0}
-@media (max-width:820px){.train{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.kern{grid-template-columns:1fr 1fr}.kern div:nth-child(2){border-right:0}.kern div:nth-child(-n+2){border-bottom:2px solid var(--zwart)}.rij{grid-template-columns:100px 1fr 36px}.wandrij{grid-template-columns:1fr}.srij{grid-template-columns:1fr auto}.srij .bar{grid-column:1/-1;grid-row:2}}
+@media (max-width:820px){.train{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.kern{grid-template-columns:1fr 1fr}.kern div:nth-child(2){border-right:0}.kern div:nth-child(-n+2){border-bottom:2px solid var(--zwart)}.rij{grid-template-columns:100px 1fr 36px}.wandrij{grid-template-columns:1fr}.srij{grid-template-columns:1fr auto}.srij .balk{grid-column:1/-1;grid-row:2}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -175,8 +186,15 @@ const TEKST={
     reacties:"reacties", blij:"gemiddelde score", vsVorige:"vs vorige", genoeg:"genoeg op eigen niveau", gradesKlopt:"vindt de grades kloppen",
     sigKop:"Actiepunten", sigUitleg:n=>`Komt automatisch uit de antwoorden, vanaf ${n} reacties. Met "Kopieer alles" neem je de lijst mee.`,
     kopieerAlle:"Kopieer alles", goedNieuws:"goed nieuws",
+    lees:{kop:"Lees dit eerst", uitleg:"Kanttekeningen bij deze cijfers, automatisch uit de antwoorden.",
+      weinig:n=>`Nog maar ${n} reacties. Verschillen kleiner dan een halve punt kunnen toeval zijn. Kijk vooral naar wat vaak terugkomt in de tips.`,
+      vast:p=>`${p}% komt 2 keer of vaker per week. Dit is vooral de mening van vaste klimmers, niet van nieuwe of incidentele bezoekers.`,
+      sterk:p=>`${p}% klimt niveau 6 of hoger. Beginners zijn ondervertegenwoordigd: tel hun weinige reacties zwaarder mee.`,
+      lang:p=>`${p}% is 1,80 m of langer. Kijk bij reach-klachten van kleinere klimmers verder dan het gemiddelde.`,
+      verdeeld:(l,h)=>`De meningen lopen uiteen: ${l}% geeft een 1 of 2, ${h}% een 4 of 5. Het gemiddelde zegt hier weinig; lees de tips van beide kanten.`,
+      wanden:"Vergelijk verschillende wanden voorzichtig. Een slab en een overhang trekken een ander publiek. Of een set goed was, zie je het eerlijkst door een wand met zijn eigen eerdere sets te vergelijken (Score per set → Per wand)."},
     geenSignalen:"Nog geen actiepunten. Er zijn te weinig reacties, of alles gaat goed.",
-    setsKop:"Score per set", setsUitleg:"Gemiddelde score per set, van 1 tot 5, nieuwste bovenaan. Per wand: vergelijk een wand met zijn eerdere sets. Alle sets: alle wanden op volgorde van setdatum. Geel is de set die je bekijkt. Nieuwe set? Zet hem in de tab Sets van de Sheet.", geenSets:"Nog geen sets", vPerWand:"Per wand", vAlle:"Alle sets", kiesWand:"Wand",
+    setsKop:"Score per set", setsUitleg:"Gemiddelde score per set (balk van 1 tot 5), nieuwste bovenaan. Sets zonder reacties staan er niet in. Per wand: vergelijk een wand met zijn eerdere sets. Alle sets: alle wanden op volgorde van setdatum. Geel is de set die je bekijkt. Nieuwe set? Zet hem in de tab Sets van de Sheet.", geenSets:"Nog geen sets", vPerWand:"Per wand", vAlle:"Alle sets", kiesWand:"Wand", verdLeg:"Dunne balk: hoe de scores verdeeld zijn", vsVorigeSet:"t.o.v. vorige set van deze wand",
     fitKop:"Genoeg op elk niveau?", fitUitleg:"Per niveau, zoals klimmers het zelf invullen. Rood betekent te weinig routes.",
     gradeKop:"Klopten de grades?", gradeUitleg:"Zonder de antwoorden 'Geen idee'.",
     stijlKop:"Stijl: gevonden en gemist", stijlUitleg:"Zwart: hoe vaak klimmers een stijl tegenkwamen. Geel: hoe vaak ze er meer van willen. Is geel langer dan zwart, dan mist er iets.", gevoeld:"Gevonden", gemist:"Gemist",
@@ -237,8 +255,15 @@ const TEKST={
     reacties:"responses", blij:"average score", vsVorige:"vs previous", genoeg:"enough at own level", gradesKlopt:"say the grades are right",
     sigKop:"Action points", sigUitleg:n=>`Generated from the answers, from ${n} responses up. Use "Copy all" to take the list with you.`,
     kopieerAlle:"Copy all", goedNieuws:"good news",
+    lees:{kop:"Read this first", uitleg:"Caveats for these numbers, generated from the answers.",
+      weinig:n=>`Only ${n} responses so far. Differences smaller than half a point may be chance. Focus on what keeps coming back in the tips.`,
+      vast:p=>`${p}% climb here 2+ times a week. This mostly reflects regulars, not new or occasional visitors.`,
+      sterk:p=>`${p}% climb level 6 or higher. Beginners are underrepresented: give their few answers extra weight.`,
+      lang:p=>`${p}% are 1.80 m or taller. With reach complaints from shorter climbers, look beyond the average.`,
+      verdeeld:(l,h)=>`Opinions are split: ${l}% give a 1 or 2, ${h}% a 4 or 5. The average says little here; read the tips from both sides.`,
+      wanden:"Compare different walls with care. A slab and an overhang attract different climbers. Whether a set was good is fairest judged against the same wall's earlier sets (Score per set → Per wall)."},
     geenSignalen:"No action points yet. Too few responses, or everything's going well.",
-    setsKop:"Score per set", setsUitleg:"Average score per set, 1 to 5, newest first. Per wall: compare a wall with its earlier sets. All sets: every wall in order of set date. Yellow is the set you're viewing. New set? Add it to the Sets tab of the Sheet.", geenSets:"No sets yet", vPerWand:"Per wall", vAlle:"All sets", kiesWand:"Wall",
+    setsKop:"Score per set", setsUitleg:"Average score per set (bar from 1 to 5), newest first. Sets without responses are left out. Per wall: compare a wall with its earlier sets. All sets: every wall in order of set date. Yellow is the set you're viewing. New set? Add it to the Sets tab of the Sheet.", geenSets:"No sets yet", vPerWand:"Per wall", vAlle:"All sets", kiesWand:"Wall", verdLeg:"Thin bar: how the scores are spread", vsVorigeSet:"vs previous set on this wall",
     fitKop:"Enough at every level?", fitUitleg:"Per level, as climbers fill it in themselves. Red means too few routes.",
     gradeKop:"Were the grades right?", gradeUitleg:"Without the 'No idea' answers.",
     stijlKop:"Style: found and missed", stijlUitleg:"Black: how often climbers came across a style. Yellow: how often they want more of it. If yellow is longer than black, something's missing.", gevoeld:"Found", gemist:"Missed",
@@ -265,6 +290,7 @@ const TEKST={
     regulier:"Regular trainings", selectie:"Selection trainings", nuBezig:"now", vanaf:"from", tm:"until", geenTrain:"Nothing planned yet."
   }
 };
+const SCOREKLEUR=["#E0442B","#F2A08F","#C9C9C9","#767676","#000"]; // score 1 t/m 5
 const KLEUR={terug:{ja:"#000",misschien:"#C9C9C9",nee:"#FFD23F",onbekend:"#2F5BFF"},fit:{weinig:"#E0442B",goed:"#000",veel:"#C9C9C9"},grade:{soft:"#2F5BFF",klopt:"#000",zwaar:"#E0442B",wisselend:"#FFD23F"},halopt:{top:"#000",oke:"#C9C9C9",beter:"#E0442B"}};
 
 const hashP = new URLSearchParams(location.hash.slice(1));
@@ -405,6 +431,18 @@ function signalen(A){
   return s.sort((a,b)=>(a.t==="actie"?0:1)-(b.t==="actie"?0:1));
 }
 
+/* ---------- kanttekeningen: hoe lees je deze cijfers? ---------- */
+function kanttekeningen(A){
+  const k=[], n=A.length; if(!n) return k;
+  if(n<30) k.push(T.lees.weinig(n));
+  const F=A.filter(r=>r.freq); if(F.length>=MIN_N){const p=pct(F.filter(r=>r.freq==="vaste").length,F.length); if(p>=60) k.push(T.lees.vast(p));}
+  const N=A.filter(r=>/^\d+$/.test(r.niveau)); if(N.length>=MIN_N){const p=pct(N.filter(r=>+r.niveau>=6).length,N.length); if(p>=70) k.push(T.lees.sterk(p));}
+  const L=A.filter(r=>r.lengte); if(L.length>=MIN_N){const p=pct(L.filter(r=>["180-190","190+"].includes(r.lengte)).length,L.length); if(p>=45) k.push(T.lees.lang(p));}
+  const H=A.filter(r=>r.happy).map(r=>+r.happy); if(H.length>=MIN_N){const l=pct(H.filter(x=>x<=2).length,H.length),hi=pct(H.filter(x=>x>=4).length,H.length); if(l>=20&&hi>=40) k.push(T.lees.verdeeld(l,hi));}
+  if(wandenInBeeld().length>1||setView==="alle") k.push(T.lees.wanden);
+  return k;
+}
+
 /* ---------- controle: wat klopt er niet in de Sheet? ---------- */
 function controle(){
   const f=[], uniek=a=>[...new Set(a)], geldig=v=>v!==""&&v!=null&&!isNaN(new Date(v));
@@ -482,6 +520,8 @@ function render(){
     <div><b>${pct(fitV.delen[1].x,fitV.n)}%</b><span>${T.genoeg}</span></div>
     <div><b>${pct(gr.filter(r=>r.grade==="klopt").length,gr.length)}%</b><span>${T.gradesKlopt}</span></div></div>`;
 
+  const lees=kanttekeningen(A);
+  if(lees.length) h+=`<section class="lees"><h2>${T.lees.kop}</h2><p class="uitleg">${T.lees.uitleg}</p><ul>${lees.map(x=>`<li>${x}</li>`).join("")}</ul></section>`;
   h+=`<div class="grid">`;
   h+=`<section class="signalen vol"><div class="sigkop"><div><h2>${T.sigKop}</h2><p class="uitleg">${T.sigUitleg(MIN_N)}</p></div>
     ${sig.length?`<button class="knop licht" data-alles="1">${T.kopieerAlle}</button>`:""}</div>
@@ -505,22 +545,29 @@ function render(){
     const R=DATA.antwoorden.filter(r=>r.wand===w&&r.set===s&&r.happy), g=gem(R.map(r=>+r.happy)), sd=setDatum(w,s);
     const w1=sd?gem(R.filter(r=>new Date(r.ontvangen)-sd<7*864e5).map(r=>+r.happy)):null, w2=sd?gem(R.filter(r=>new Date(r.ontvangen)-sd>=7*864e5).map(r=>+r.happy)):null;
     const nu=ws.includes(w)&&s===gekozenSet(w)&&["nu","vorige"].includes(filt.periode);
+    // verschil met de vorige set van dezelfde wand, alleen als beide sets genoeg reacties hebben
+    const sv=vorigeVan(w,s), O=sv?DATA.antwoorden.filter(r=>r.wand===w&&r.set===sv&&r.happy).map(r=>+r.happy):[];
+    let d=R.length>=MIN_N&&O.length>=MIN_N?g-gem(O):null; if(d!=null&&Math.abs(d)<0.05) d=0;
+    const tel=[1,2,3,4,5].map(x=>R.filter(r=>+r.happy===x).length);
     return `<div class="srij ${nu?'nu':''} ${R.length<MIN_N?'laag':''}" title="${R.length<MIN_N?T.teWeinigReacties:''}"><div class="lab"><b>${lab}</b><small>${[sub,w2!=null?`${T.wk1} ${f1(w1)} · ${T.daarna} ${f1(w2)}`:""].filter(Boolean).join(" · ")}</small></div>
-      <div class="bar"><span style="width:${g?g/5*100:0}%"></span></div>
-      <div class="sc"><b>${f1(g)}</b><small>n=${R.length}</small></div></div>`};
-  const metSets=Object.keys(WANDEN).filter(w=>setsVan(w).length);
-  if(filt.wand!=="alle") setWand=filt.wand; else if(!setWand||!WANDEN[setWand]) setWand=ws.find(w=>setsVan(w).length)||metSets[0]||null;
+      <div class="balk"><div class="bar"><span style="width:${g?Math.max(2,(g-1)/4*100):0}%"></span></div>
+      <div class="verd" title="${tel.map((x,i)=>`${i+1}: ${x}`).join(" · ")}">${tel.map((x,i)=>x?`<span style="width:${x/R.length*100}%;background:${SCOREKLEUR[i]}"></span>`:"").join("")}</div></div>
+      <div class="sc"><b>${f1(g)}</b>${d!=null?`<span class="d ${d>=0?'up':'down'}" title="${T.vsVorigeSet}">${d>=0?"+":""}${f1(d)}</span>`:""}<small>n=${R.length}</small></div></div>`};
+  const heeftReacties=(w,s)=>DATA.antwoorden.some(r=>r.wand===w&&r.set===s&&r.happy);
+  const metSets=Object.keys(WANDEN).filter(w=>setsVan(w).some(s=>heeftReacties(w,s)));
+  if(filt.wand!=="alle") setWand=filt.wand; else if(!setWand||!metSets.includes(setWand)) setWand=ws.find(w=>metSets.includes(w))||metSets[0]||null;
   let rijen="";
   if(setView==="wand"){
     const S=setWand?setsVan(setWand).slice().reverse():[];
-    rijen=S.map(s=>{const sd=setDatum(setWand,s),ok=sd&&!isNaN(sd),eigen=!s.startsWith(setWand+" ");return setRij(setWand,s,ok?dk(sd):esc(s),ok&&eigen?esc(s):"")}).join(""); /* eigen setnaam alleen tonen als de setters er een gaven */
+    rijen=S.filter(s=>heeftReacties(setWand,s)).map(s=>{const sd=setDatum(setWand,s),ok=sd&&!isNaN(sd),eigen=!s.startsWith(setWand+" ");return setRij(setWand,s,ok?dk(sd):esc(s),ok&&eigen?esc(s):"")}).join(""); /* eigen setnaam alleen tonen als de setters er een gaven */
   }else{
-    const L=[];Object.keys(WANDEN).forEach(w=>setsVan(w).forEach(s=>{const sd=setDatum(w,s);L.push({w,s,t:sd&&!isNaN(sd)?+sd:0})}));
+    const L=[];Object.keys(WANDEN).forEach(w=>setsVan(w).filter(s=>heeftReacties(w,s)).forEach(s=>{const sd=setDatum(w,s);L.push({w,s,t:sd&&!isNaN(sd)?+sd:0})}));
     rijen=L.sort((a,b)=>b.t-a.t).map(x=>setRij(x.w,x.s,(x.t?dk(x.t)+" · ":"")+naamWand(x.w),"")).join("");
   }
   h+=`<section class="vol" id="setsectie"><h2>${T.setsKop}</h2><p class="uitleg">${T.setsUitleg}</p>
     <div class="sethead"><div class="seg" role="group" aria-label="${T.setsKop}"><button data-view="wand" aria-pressed="${setView==='wand'}">${T.vPerWand}</button><button data-view="alle" aria-pressed="${setView==='alle'}">${T.vAlle}</button></div>
     ${setView==="wand"&&filt.wand==="alle"&&metSets.length?`<label class="meta" style="display:flex;gap:8px;align-items:center;margin:0">${T.kiesWand}<select id="sw">${metSets.map(w=>`<option value="${w}" ${w===setWand?"selected":""}>${naamWand(w)}</option>`).join("")}</select></label>`:""}</div>
+    ${rijen?`<div class="verdleg">${T.verdLeg}: ${SCOREKLEUR.map((c,i)=>`<span><i style="background:${c}"></i>${i+1}</span>`).join("")}</div>`:""}
     <div>${rijen||`<p class="leeg">${T.geenSets}</p>`}</div></section>`;
 
   h+=`<section><h2>${T.fitKop}</h2><p class="uitleg">${T.fitUitleg}</p>
