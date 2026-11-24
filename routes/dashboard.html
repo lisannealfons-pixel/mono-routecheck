@@ -347,8 +347,24 @@ async function laad(){
     const j = await r.json();
     if(j.fout){ wisWw(); return toonInlog(true); }
     j.antwoorden.forEach(r=>{r.niveau=String(r.niveau??""); r.nivg=nivGroep(r.niveau);}); // groep voor het dashboard
+    herkoppel(j);
     DATA=j; render();
   }catch(e){ document.getElementById("app").innerHTML=`<div class="waarschuwing" role="alert"><b>${T.laadFout}</b></div>`; }
+}
+
+/* Antwoorden opnieuw aan sets koppelen volgens de tab Sets zoals die NU is.
+   Zo kloppen aanpassingen in de Sheet (andere volgorde, wandnaam in plaats van code) ook voor oude antwoorden. */
+function herkoppel(j){
+  const naarId={}; Object.entries(WANDEN).forEach(([id,naam])=>{naarId[id]=id; naarId[naam.toLowerCase()]=id; naarId[naam.toLowerCase().replace(/[^a-z0-9]+/g,"-")]=id;});
+  const ymd=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  const S=(j.sets||[]).map(s=>({...s,wand:naarId[String(s.wand).trim().toLowerCase()]||s.wand,d:String(s.setdatum??"").slice(0,10)}));
+  j.sets=S.map(({d,...s})=>s);
+  j.antwoorden.forEach(r=>{
+    const w=naarId[String(r.wand??"").trim().toLowerCase()]; if(w) r.wand=w;
+    const o=new Date(r.ontvangen); if(!w||isNaN(o)) return;
+    const dag=ymd(o), best=S.filter(s=>s.wand===w&&s.d&&s.d<=dag).sort((a,b)=>a.d<b.d?1:-1)[0];
+    if(best){r.set=best.naam||(w+" "+best.d); r.setdatum=best.d;}
+  });
 }
 
 /* ---------- helpers ---------- */
